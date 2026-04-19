@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pat Panackelty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy:ital@0;1&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* Invisible font preloader - forces the browser to load all variants early */
+.__font-preload { position: absolute; left: -9999px; font-family: 'IM Fell English'; font-style: italic; }
+</style>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="paper-texture"></div>
+
+<main id="book">
+  <!-- Chapters injected here by js -->
+</main>
+
+<!-- Hidden preloader to force font variants to load early -->
+<span class="__font-preload" aria-hidden="true">Aa <i>italic</i></span>
+
+<!-- Definition side panel -->
+<aside id="panel" class="panel" aria-hidden="true">
+  <button class="panel-close" aria-label="Close definition">×</button>
+  <div class="panel-content" id="panel-content"></div>
+</aside>
+
+<!-- Navigation -->
+<nav id="chapter-nav" aria-label="Chapters">
+  <button id="prev-btn" class="nav-btn" aria-label="Previous">‹</button>
+  <div id="chapter-indicator" class="chapter-indicator"></div>
+  <button id="next-btn" class="nav-btn" aria-label="Next">›</button>
+</nav>
+
+<!-- Scramble game (appears inline at end of dream intro) -->
+<!-- All games are rendered inside chapter flow by JS -->
+
+<script src="js/content.js"></script>
+<script src="js/vocab.js"></script>
+<script src="js/games/scramble.js"></script>
+<script src="js/games/tinder.js"></script>
+<script src="js/games/forest.js"></script>
+<script src="js/games/maze.js"></script>
+<script src="js/book.js"></script>
+
+</body>
+</html>
