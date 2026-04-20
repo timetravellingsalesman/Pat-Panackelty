@@ -179,18 +179,22 @@
 
     bindControls() {
       const keyHandler = (e) => {
-        if (this.state.complete) return;
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown" &&
+            e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         const rect = this.board.getBoundingClientRect();
         const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
         if (!isVisible) return;
+        // Always swallow arrow keys while the tinder board is on screen,
+        // even after the game is complete, so the book's chapter nav
+        // doesn't catch a stray keypress.
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.state.complete) return;
         let dc = 0, dr = 0;
         if (e.key === "ArrowUp") dr = -1;
         else if (e.key === "ArrowDown") dr = 1;
         else if (e.key === "ArrowLeft") dc = -1;
         else if (e.key === "ArrowRight") dc = 1;
-        else return;
-        e.preventDefault();
-        e.stopPropagation();
         this.move(dc, dr);
       };
       window.addEventListener("keydown", keyHandler, true);

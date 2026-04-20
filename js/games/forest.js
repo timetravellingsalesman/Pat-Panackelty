@@ -234,17 +234,19 @@
 
     bindControls() {
       const handler = (e) => {
-        if (this.state.complete) return;
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown" &&
+            e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         const rect = this.wrap.getBoundingClientRect();
         if (rect.top >= window.innerHeight || rect.bottom <= 0) return;
+        // Always swallow arrow keys while the forest board is on screen.
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.state.complete) return;
         let dx = 0, dy = 0;
         if (e.key === "ArrowUp") dy = -1;
         else if (e.key === "ArrowDown") dy = 1;
         else if (e.key === "ArrowLeft") dx = -1;
         else if (e.key === "ArrowRight") dx = 1;
-        else return;
-        e.preventDefault();
-        e.stopPropagation();
         this.move(dx, dy);
       };
       window.addEventListener("keydown", handler, true);

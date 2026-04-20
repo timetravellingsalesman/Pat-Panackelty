@@ -541,17 +541,23 @@
 
     bindControls() {
       const handler = (e) => {
-        if (!this.state || this.state.complete || this.state.caught) return;
+        // Only claim arrow keys — other keys should bubble normally
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown" &&
+            e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        // If the maze chapter isn't visible on screen, let arrows bubble
         const rect = this.wrap.getBoundingClientRect();
         if (rect.top >= window.innerHeight || rect.bottom <= 0) return;
+        // Always swallow arrow keys while the maze is on screen, so a
+        // late keypress right after getting caught (or right after winning)
+        // can't sneak past and nav to another chapter.
+        e.preventDefault();
+        e.stopPropagation();
+        if (!this.state || this.state.complete || this.state.caught) return;
         let dr = 0, dc = 0;
         if (e.key === "ArrowUp") dr = -1;
         else if (e.key === "ArrowDown") dr = 1;
         else if (e.key === "ArrowLeft") dc = -1;
         else if (e.key === "ArrowRight") dc = 1;
-        else return;
-        e.preventDefault();
-        e.stopPropagation();
         this.moveFrog(dr, dc);
       };
       window.addEventListener("keydown", handler, true);
