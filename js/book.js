@@ -4,64 +4,12 @@ const BOOK = {
   currentIndex: 0,
   chapters: [],
   gameCompletion: {}, // track which games have been completed
-  mazeWon: false,
-  tinderWon: false,
-
-  loadProgress() {
-    try {
-      this.mazeWon = localStorage.getItem('patbook.mazeWon') === '1';
-      this.tinderWon = localStorage.getItem('patbook.tinderWon') === '1';
-    } catch (e) {
-      // ignore — private mode, disabled storage, etc.
-    }
-  },
-
-  saveProgress() {
-    try {
-      if (this.mazeWon) localStorage.setItem('patbook.mazeWon', '1');
-      if (this.tinderWon) localStorage.setItem('patbook.tinderWon', '1');
-    } catch (e) {
-      // ignore
-    }
-  },
 
   init() {
-    this.loadProgress();
     this.chapters = CHAPTERS;
     this.renderAll();
     this.bindEvents();
-    this.applyRestoredProgress();
     this.goTo(0);
-  },
-
-  // If puzzles were already completed in a previous session, reveal their
-  // unlocked content and wire their continue buttons so the reader doesn't
-  // have to redo them on reload.
-  applyRestoredProgress() {
-    if (this.tinderWon) {
-      const region = document.getElementById('jeannie-after-tinder');
-      if (region) {
-        region.setAttribute('aria-hidden', 'false');
-        region.classList.add('revealed', 'instant');
-      }
-      const contBtn = document.getElementById('jeannie-continue-btn');
-      if (contBtn && !contBtn.dataset.wired) {
-        contBtn.dataset.wired = '1';
-        contBtn.addEventListener('click', () => this.next());
-      }
-    }
-    if (this.mazeWon) {
-      const region = document.getElementById('queen-after-maze');
-      if (region) {
-        region.setAttribute('aria-hidden', 'false');
-        region.classList.add('revealed', 'instant');
-      }
-      const contBtn = document.getElementById('queen-continue-btn');
-      if (contBtn && !contBtn.dataset.wired) {
-        contBtn.dataset.wired = '1';
-        contBtn.addEventListener('click', () => this.next());
-      }
-    }
   },
 
   renderAll() {
@@ -247,11 +195,7 @@ const BOOK = {
     if (target) target.classList.add('active');
     this.updateNav();
     this.closePanel();
-    // Scroll to top instantly AFTER the chapter has been swapped in.
-    // A smooth scroll from a very long chapter's bottom can look like it's
-    // landing on the end of the new chapter, so we jump instead.
-    window.scrollTo(0, 0);
-    requestAnimationFrame(() => window.scrollTo(0, 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     // Notify games about chapter change so they can reset or init
     window.dispatchEvent(new CustomEvent('chapterChange', { detail: { index, chapter: this.chapters[index] } }));
   },
@@ -296,7 +240,6 @@ const BOOK = {
     // Listen for the maze-win event to unlock forward navigation
     window.addEventListener('mazeWon', () => {
       this.mazeWon = true;
-      this.saveProgress();
       this.updateNav();
       // Wire up the "open your eyes →" button once revealed
       const contBtn = document.getElementById('queen-continue-btn');
@@ -309,7 +252,6 @@ const BOOK = {
     // Tinder game win - unlock the Jeannie chapter's end
     window.addEventListener('tinderWon', () => {
       this.tinderWon = true;
-      this.saveProgress();
       this.updateNav();
       const contBtn = document.getElementById('jeannie-continue-btn');
       if (contBtn && !contBtn.dataset.wired) {
@@ -323,13 +265,10 @@ const BOOK = {
       // Arrow keys for navigation, unless a game is focused
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (document.activeElement && document.activeElement.closest('.game-mount')) return;
-      // Block arrow keys for chapter nav ONLY while the chapter's puzzle
-      // is still unsolved. Once the puzzle is done (either this session or
-      // a previous one), arrows should work normally so the reader can
-      // flip through pages without being trapped.
+      // Block both arrow keys for chapter nav while on chapters with games:
+      // reader must explicitly click the continue button, not arrow out accidentally.
       const currentCh = this.chapters[this.currentIndex];
-      if (currentCh && currentCh.id === 'queen' && !this.mazeWon) return;
-      if (currentCh && currentCh.id === 'jeannie' && !this.tinderWon) return;
+      if (currentCh && (currentCh.id === 'queen' || currentCh.id === 'jeannie')) return;
       if (e.key === 'ArrowRight') this.next();
       if (e.key === 'ArrowLeft') this.prev();
     });

@@ -53,7 +53,7 @@ const CHAPTERS = [
     title: "The Time Travelling Salesman",
     number: "ii",
     html: `
-      <p class="dropcap no-indent">You descend onto a desert, and thump gently onto the ground. A few moments pass, and only a <span class="vocab" data-vocab="tumbleweed">tumbleweed</span> clutters the never-ending vastness of the landscape. You are starting to get a little bored when suddenly — what appears to be a portal — expands vertically. Once it's about human size a man jumps out of it holding a sewing machine under his arm.</p>
+      <p class="dropcap no-indent">You descend onto a desert, and thump gently onto the ground. A few moments pass, and only a tumbleweed clutters the never-ending vastness of the landscape. You are starting to get a little bored when suddenly — what appears to be a portal — expands vertically. Once it's about human size a man jumps out of it holding a sewing machine under his arm.</p>
 
       <p style="font-style: italic; color: var(--ink-faded); text-indent: 0; padding-left: 1rem; border-left: 2px solid var(--rule);">A sewing machine is a device for linking pieces of fabric together. But you already knew that, right?</p>
 
@@ -84,7 +84,7 @@ const CHAPTERS = [
       <p>A portal opens up, horizontally this time, and a blue car pops out. The salesman opens the trunk, throws the machine in it, and says: "I always wanted to start a fashion couture business." Shuts the trunk, jumps in. "Later kiddo!" he waves as he drives off.</p>
       <p>You look at the car and the large trail of dust behind it as it drives away toward the horizon.</p>
       <p>Before you can decide whether you're disappointed or inspired, a portal opens up above you.</p>
-      <p>This one is a little different, you can see through it a beautiful blue sea, some tiny seagulls drifting in the sky. Their movement gave the sea a new dimension, a sliding <span class="vocab" data-vocab="parallax">parallax</span> that made the height and depth more apparent. You jump up without hesitation, and as soon as you cross the portal your weight sheds.</p>
+      <p>This one is a little different, you can see through it a beautiful blue sea, some tiny seagulls drifting in the sky. Their movement gave the sea a new dimension, a sliding parallax that made the height and depth more apparent. You jump up without hesitation, and as soon as you cross the portal your weight sheds.</p>
 
       <div class="chapter-end">· · ·</div>
     `
@@ -189,7 +189,7 @@ const CHAPTERS = [
       <p>You approach and are greeted by a bright smile of a lady with pink hair. One of her eyes is red, and the other is blue.</p>
 
       <p class="dialogue">"I'm Jeannie. What's your name, little imp?"</p>
-      <p class="dialogue">"I'm <span class="vocab" data-vocab="pat">Pat</span>."</p>
+      <p class="dialogue">"I'm Pat."</p>
       <p class="dialogue">"Nice to meet you, Pat. Come, sit down."</p>
 
       <p>You sit down next to her and you have a snack and something to drink. Jeannie gives you a blanket to keep you warm, and you watch the sun set over the trees at the other end of the lake.</p>
@@ -365,7 +365,7 @@ const CHAPTERS = [
     title: "Queen of Hearts",
     number: "vii",
     html: `
-      <p class="dropcap no-indent">You march in through the large door that opened itself in front of you. On the throne sits a beautiful lady. She seems to be enjoying the conversation with the <span class="vocab" data-vocab="courtiers">courtiers</span>, but immediately turns her face towards you as soon as you enter, and all the lively chatter stops at once.</p>
+      <p class="dropcap no-indent">You march in through the large door that opened itself in front of you. On the throne sits a beautiful lady. She seems to be enjoying the conversation with the courtiers, but immediately turns her face towards you as soon as you enter, and all the lively chatter stops at once.</p>
 
       <p class="dialogue">"You there!" She says softly, and treats you with the most kind of smiles you've ever seen. As if she were still a child deep down in her heart. "It's very brave of you to have come here all by yourself."</p>
       <p class="dialogue">"It wasn't all that scary." It kind of was, but you are feeling encouraged.</p>

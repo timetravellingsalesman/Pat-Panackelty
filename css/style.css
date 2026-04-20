@@ -1056,9 +1056,3 @@ body::before {
   opacity: 1;
   pointer-events: auto;
 }
-/* When progress is restored on load, snap open without animation */
-.locked-until-maze.revealed.instant,
-.locked-until-tinder.revealed.instant {
-  transition: none;
-  max-height: none;
-}

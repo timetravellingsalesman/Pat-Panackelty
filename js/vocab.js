@@ -61,28 +61,6 @@ const VOCAB = {
     def: "A single eyeglass that you hold or wedge into one eye, often worn by old professors and detectives in storybooks.",
     source: "https://en.wiktionary.org/wiki/monocle"
   },
-  tumbleweed: {
-    word: "tumbleweed",
-    pron: "TUM-bul-weed",
-    def: "A dry, round, tangly bundle of plant that breaks off from its roots when it dies, and rolls across the desert whenever the wind nudges it along. You see them a lot in cowboy films, bouncing past just when nobody's saying anything.",
-    source: "https://en.wiktionary.org/wiki/tumbleweed"
-  },
-  parallax: {
-    word: "parallax",
-    pron: "PARR-uh-laks",
-    def: "The way things far away seem to move more slowly than things close to you when you are moving past them. Try it in a car — the trees near the road whoosh by, but the hills in the distance drift along lazily. That gentle sliding of the layers is parallax, and it's what helps your eyes tell what is near and what is far.",
-    source: "https://en.wiktionary.org/wiki/parallax"
-  },
-  courtiers: {
-    word: "courtiers",
-    pron: "KOR-tee-erz",
-    def: "The fancily-dressed people who hang about at a king or queen's palace. They are not royal themselves, but they spend their days near the throne — chatting, advising, gossiping, bowing, and generally trying to stay in the monarch's good books.",
-    source: "https://en.wiktionary.org/wiki/courtier"
-  },
-  pat: {
-    word: "Pat",
-    def: `<p style="text-align: center; margin: 0.5rem 0 1rem;"><img src="assets/pat.png" alt="Pat" style="max-width: 100%; max-height: 18rem; border-radius: 0.5rem;"></p><p style="text-align: center; font-style: italic;">That's you!</p>`
-  },
   hypnagogia_alt: {
     word: "hypnagogia",
     pron: "hip-nuh-GO-jee-uh",
