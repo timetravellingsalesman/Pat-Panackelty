@@ -7,25 +7,42 @@
 (function () {
   const COLS = 7;
   const ROWS = 5;
-  const START = { c: 0, r: 0 };  // top-left, matches the drawn path
+  const START = { c: 0, r: 0 };
   const GOAL = { c: 6, r: 0 };   // van door at top-right
   const FLASHLIGHT_RADIUS = 1.8;
 
-  // Obstacles - hand-mapped to the 7x5 grid, consistent with drawn escape route.
+  // Cell-based obstacles
   const OBSTACLES = new Set([
-    // Van body - top row cells 3,4,5; (6,0) is the DOOR (goal, walkable)
+    // Van body: (3,0), (4,0), (5,0). (6,0) is the DOOR (goal, walkable)
     "3,0", "4,0", "5,0",
-    // Monkey at (1,1)
+    // Monkey
     "1,1",
-    // Potted plant at (4,1) - in the upper-middle-right
-    "4,1",
-    // Bathtub with snake head
+    // Flower pot (upper-right, just before the van door)
+    "5,1",
+    // Bathtub (snake head peeks but cells are the tub)
     "2,2", "3,2",
-    // Palm on the left edge (leftmost "flower")
+    // Palm (leftmost drawing, middle row)
     "0,3",
-    // Bottom row doodads: flower, cat, acorn, worm
-    "3,4", "4,4", "5,4", "6,4",
+    // Tree and cooking pot in row 3
+    "5,3", "6,3",
+    // Bottom row: 4 cells free from the left, then rest blocked (flower cluster, cat, acorn/worm)
+    "4,4", "5,4", "6,4",
   ]);
+
+  // Edge obstacles - walls between cells. Key format: "c1,r1|c2,r2" with c1<=c2 and r1<=r2.
+  // The snake sits on the edge between (4,2) and (4,3), blocking vertical travel there.
+  const EDGE_OBSTACLES = new Set([
+    "4,2|4,3", // snake edge: can't pass vertically
+  ]);
+
+  function edgeKey(c1, r1, c2, r2) {
+    if (c1 < c2 || (c1 === c2 && r1 < r2)) return `${c1},${r1}|${c2},${r2}`;
+    return `${c2},${r2}|${c1},${r1}`;
+  }
+
+  function canCross(c1, r1, c2, r2) {
+    return !EDGE_OBSTACLES.has(edgeKey(c1, r1, c2, r2));
+  }
 
   function key(c, r) { return c + "," + r; }
   function isObstacle(c, r) { return OBSTACLES.has(key(c, r)); }
@@ -199,9 +216,11 @@
       else if (dc === -1 && dr === 0) this.state.facing = "left";
       else if (dc === 1 && dr === 0) this.state.facing = "right";
 
-      const nc = this.state.pat.c + dc;
-      const nr = this.state.pat.r + dr;
-      if (!inBounds(nc, nr) || isObstacle(nc, nr)) {
+      const cc = this.state.pat.c;
+      const cr = this.state.pat.r;
+      const nc = cc + dc;
+      const nr = cr + dr;
+      if (!inBounds(nc, nr) || isObstacle(nc, nr) || !canCross(cc, cr, nc, nr)) {
         this.renderPat(); // still show the turn
         return;
       }

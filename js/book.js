@@ -132,7 +132,11 @@ const BOOK = {
     // Wire nested trigger
     const nestedTrigger = content.querySelector('.panel-nested-trigger');
     if (nestedTrigger) {
-      nestedTrigger.addEventListener('click', () => this.openNested(key));
+      nestedTrigger.addEventListener('click', (e) => {
+        if (nestedTrigger.classList.contains('disabled')) return;
+        e.stopPropagation();
+        this.openNested(key);
+      });
     }
 
     panel.classList.add('open');
@@ -153,13 +157,11 @@ const BOOK = {
       <div class="panel-def">${paragraphs}</div>
     `;
     content.appendChild(additional);
-    // Disable further clicks on the trigger
+    // Disable further clicks on the trigger (visually and functionally)
     const triggers = content.querySelectorAll('.panel-nested-trigger');
     triggers.forEach(t => {
-      t.style.opacity = '0.5';
-      t.style.cursor = 'default';
-      t.style.borderBottom = 'none';
-      t.replaceWith(t.cloneNode(true)); // strip event listeners
+      t.classList.add('disabled');
+      t.setAttribute('aria-disabled', 'true');
     });
     // Scroll the panel to reveal the new entry
     setTimeout(() => {
@@ -176,20 +178,15 @@ const BOOK = {
 
   goTo(index) {
     if (index < 0 || index >= this.chapters.length) return;
-    // Gating: if leaving the queen chapter forward to wake, require maze win
+    // Gating: block forward from queen chapter until maze win
     const current = this.chapters[this.currentIndex];
     if (current && current.id === 'queen' && !this.mazeWon && index > this.currentIndex) {
-      // Forward navigation blocked
-      const ind = document.getElementById('chapter-indicator');
-      if (ind) {
-        const original = ind.textContent;
-        ind.textContent = 'escape the chef first';
-        ind.style.color = 'var(--accent)';
-        setTimeout(() => {
-          ind.style.color = '';
-          this.updateNav();
-        }, 1400);
-      }
+      this.flashGateMessage('escape the chef first');
+      return;
+    }
+    // Gating: block forward from jeannie until tinder win
+    if (current && current.id === 'jeannie' && !this.tinderWon && index > this.currentIndex) {
+      this.flashGateMessage('finish the firewood first');
       return;
     }
     this.currentIndex = index;
@@ -203,6 +200,17 @@ const BOOK = {
     window.dispatchEvent(new CustomEvent('chapterChange', { detail: { index, chapter: this.chapters[index] } }));
   },
 
+  flashGateMessage(msg) {
+    const ind = document.getElementById('chapter-indicator');
+    if (!ind) return;
+    ind.textContent = msg;
+    ind.style.color = 'var(--accent)';
+    setTimeout(() => {
+      ind.style.color = '';
+      this.updateNav();
+    }, 1400);
+  },
+
   next() { this.goTo(this.currentIndex + 1); },
   prev() { this.goTo(this.currentIndex - 1); },
 
@@ -213,10 +221,10 @@ const BOOK = {
     prev.disabled = this.currentIndex === 0;
     next.disabled = this.currentIndex >= this.chapters.length - 1;
     const ch = this.chapters[this.currentIndex];
-    // On queen chapter, disable the next button visually until maze is won.
-    if (ch && ch.id === 'queen' && !this.mazeWon) {
-      next.disabled = true;
-    }
+    // Queen chapter: disable next until maze is won
+    if (ch && ch.id === 'queen' && !this.mazeWon) next.disabled = true;
+    // Jeannie chapter: disable next until tinder is done
+    if (ch && ch.id === 'jeannie' && !this.tinderWon) next.disabled = true;
     if (ch.isCover) {
       ind.textContent = '— cover —';
     } else {
@@ -241,15 +249,26 @@ const BOOK = {
       }
     });
 
+    // Tinder game win - unlock the Jeannie chapter's end
+    window.addEventListener('tinderWon', () => {
+      this.tinderWon = true;
+      this.updateNav();
+      const contBtn = document.getElementById('jeannie-continue-btn');
+      if (contBtn && !contBtn.dataset.wired) {
+        contBtn.dataset.wired = '1';
+        contBtn.addEventListener('click', () => this.next());
+      }
+    });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.closePanel();
       // Arrow keys for navigation, unless a game is focused
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (document.activeElement && document.activeElement.closest('.game-mount')) return;
-      // Block forward-keyboard navigation while on the queen chapter:
+      // Block both arrow keys for chapter nav while on chapters with games:
       // reader must explicitly click the continue button, not arrow out accidentally.
       const currentCh = this.chapters[this.currentIndex];
-      if (e.key === 'ArrowRight' && currentCh && currentCh.id === 'queen') return;
+      if (currentCh && (currentCh.id === 'queen' || currentCh.id === 'jeannie')) return;
       if (e.key === 'ArrowRight') this.next();
       if (e.key === 'ArrowLeft') this.prev();
     });

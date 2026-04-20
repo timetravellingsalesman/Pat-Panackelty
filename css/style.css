@@ -495,20 +495,24 @@ body::before {
 }
 .letter-tile.placed {
   cursor: default;
-  transform: rotate(0deg) !important;
   box-shadow:
     0 1px 0 rgba(80, 55, 25, 0.15),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   animation: tileSettle 0.4s ease-out;
+}
+.letter-tile.placed,
+.letter-tile.placed.locked {
+  /* When placed in a slot, tile is centered via left:50%/top:50% + this translate */
+  transform: translate(-50%, -50%) rotate(0deg);
 }
 .letter-tile.locked {
   cursor: default;
   opacity: 0.92;
 }
 @keyframes tileSettle {
-  0% { transform: rotate(0deg) scale(1.15); }
-  50% { transform: rotate(0deg) scale(0.95); }
-  100% { transform: rotate(0deg) scale(1); }
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1.15); }
+  50% { transform: translate(-50%, -50%) rotate(0deg) scale(0.95); }
+  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
 }
 
 /* Four muted tile colours (applied by modulo) */
@@ -1030,4 +1034,25 @@ body::before {
   background: var(--accent);
   color: var(--paper);
   letter-spacing: 0.05em;
+}
+
+/* Nested vocab trigger when already expanded */
+.panel-nested-trigger.disabled {
+  opacity: 0.45;
+  cursor: default;
+  border-bottom: none;
+}
+
+/* Tinder post-win gate (same pattern as maze) */
+.locked-until-tinder {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1.2s ease-out, opacity 1s ease-in;
+  pointer-events: none;
+}
+.locked-until-tinder.revealed {
+  max-height: 3000px;
+  opacity: 1;
+  pointer-events: auto;
 }

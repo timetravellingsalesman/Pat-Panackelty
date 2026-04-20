@@ -94,7 +94,7 @@
   }
 
   const FROG_START = { r: 0, c: 0 };
-  const CHEF_START = { r: 3, c: 0 };  // a little further back - real-time is mean
+  const CHEF_START = { r: 6, c: 0 };  // far enough that random mazes don't trap Pat immediately
   const GOAL = { r: N - 1, c: N - 1 };
 
   // Before the chef starts moving on each reset, give Pat this much time to orient.

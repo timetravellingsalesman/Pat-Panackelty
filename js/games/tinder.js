@@ -256,6 +256,18 @@
         wrap.parentElement.appendChild(msg);
         requestAnimationFrame(() => { msg.style.opacity = "1"; });
       }, 1400);
+      // Reveal the gated chapter content (letter to Jeannie) and dispatch event
+      const locked = document.getElementById("jeannie-after-tinder");
+      if (locked) {
+        setTimeout(() => {
+          locked.classList.add("revealed");
+          locked.setAttribute("aria-hidden", "false");
+          setTimeout(() => {
+            locked.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 1200);
+        }, 1800);
+      }
+      window.dispatchEvent(new CustomEvent("tinderWon"));
     },
   };
 })();

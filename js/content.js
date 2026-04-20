@@ -233,17 +233,23 @@ const CHAPTERS = [
 
       <!--GAME:tinder-->
 
-      <p class="no-indent">You take a piece of paper out of a stack, and a pen and go back to the campfire. Where there was fire yesterday you can now see embers. A brisk wind is coming from the lake. You wrap yourself in a blanket, sit down, and write:</p>
+      <div class="locked-until-tinder" id="jeannie-after-tinder" aria-hidden="true">
+        <p class="no-indent">You take a piece of paper out of a stack, and a pen and go back to the campfire. Where there was fire yesterday you can now see embers. A brisk wind is coming from the lake. You wrap yourself in a blanket, sit down, and write:</p>
 
-      <div style="font-style: italic; text-align: center; margin: 2rem 0; color: var(--ink-soft); line-height: 1.8;">
-        <p style="text-indent: 0;">Dear Jeannie,</p>
-        <p style="text-indent: 0;">Thank you — the seat was comfortable. We forgot to put out the fire, but at least you don't need sparks for the cattail fluff. I hope the animals return once you bring the fire back to life.</p>
-        <p style="text-indent: 0;">Your friend,<br>Pat</p>
+        <div style="font-style: italic; text-align: center; margin: 2rem 0; color: var(--ink-soft); line-height: 1.8;">
+          <p style="text-indent: 0;">Dear Jeannie,</p>
+          <p style="text-indent: 0;">Thank you — the seat was comfortable. We forgot to put out the fire, but at least you don't need sparks for the cattail fluff. I hope the animals return once you bring the fire back to life.</p>
+          <p style="text-indent: 0;">Your friend,<br>Pat</p>
+        </div>
+
+        <p>You put the letter under the orb, so that the wind doesn't blow it away, and leave through a path you never noticed yesterday.</p>
+
+        <div class="chapter-end">· · ·</div>
+
+        <div class="continue-wrap">
+          <button class="continue-btn" id="jeannie-continue-btn">onto the new path →</button>
+        </div>
       </div>
-
-      <p>You put the letter under the orb, so that the wind doesn't blow it away, and leave through a path you never noticed yesterday.</p>
-
-      <div class="chapter-end">· · ·</div>
     `
   },
 
