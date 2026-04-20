@@ -1,32 +1,31 @@
-// Forest walk game - Day 3
+// Forest walk game
 // Grid-based top-down walk on the hand-drawn forest board.
-// 14 cols × 10 rows. Pat enters at (0, 4), reaches van door at (13, 1).
+// 7 cols × 5 rows — each game-cell is 3×3 notebook squares.
+// Pat enters on the left, reaches the van door on the right.
 // Two fog-of-war modes: "discrete" (default) and "flashlight".
 
 (function () {
-  const COLS = 14;
-  const ROWS = 10;
-  const START = { c: 0, r: 4 };
-  const GOAL = { c: 13, r: 1 };
-  const FLASHLIGHT_RADIUS = 2.3;
+  const COLS = 7;
+  const ROWS = 5;
+  const START = { c: 0, r: 2 };  // left edge, middle row (grass/path)
+  const GOAL = { c: 6, r: 1 };   // van door, upper-right
+  const FLASHLIGHT_RADIUS = 1.8;
 
-  // Obstacles (drawn items Pat can't cross). Hand-mapped from the board image.
+  // Obstacles - hand-mapped to the 7x5 grid.
+  // Each drawn element occupies one game-cell (= 3x3 notebook squares).
   const OBSTACLES = new Set([
-    // Van top-right
-    "6,0","7,0","8,0","9,0","10,0","11,0","12,0","13,0",
-    "7,1","8,1","9,1","10,1","11,1",  // body + wheels (keep (13,1) open as door)
-    // Monkey creature left-upper
-    "3,1","3,2",
-    // Potted plant top-right
-    "11,2","12,2",
-    // Bathtub center
-    "5,3","6,3","7,3",
-    // Bushes bottom-right
-    "9,8","10,8","8,8",
-    "10,9","11,9","9,9",
-    // Acorn + cat cluster
-    "12,8","12,9",
-    "13,9",
+    // Van - top right area, spans a few cells
+    "3,0", "4,0", "5,0", "6,0",
+    // Monkey creature
+    "1,1",
+    // Potted plant
+    "5,1",
+    // Bathtub + snake in the middle
+    "2,2", "3,2",
+    // Palm on the left edge (leftmost "flower")
+    "0,3",
+    // Flower/bushes + cat + acorn bottom row
+    "3,4", "4,4", "5,4",
   ]);
 
   function key(c, r) { return c + "," + r; }
@@ -65,6 +64,7 @@
         visited: new Set([key(START.c, START.r)]),
         mode: "discrete",
         complete: false,
+        facing: "up", // up | down | left | right
       };
 
       this.img.addEventListener("load", () => this.resizeAndRender());
@@ -109,7 +109,11 @@
       const y = (this.state.pat.r + 0.5) * this.cellH;
       this.pat.style.left = x + "px";
       this.pat.style.top = y + "px";
+      // Pat fills 85% of a game-cell (each cell = 3x3 notebook squares)
       this.pat.style.width = (this.cellW * 0.85) + "px";
+      this.pat.style.height = (this.cellH * 0.85) + "px";
+      const rot = { up: 0, right: 90, down: 180, left: 270 }[this.state.facing] || 0;
+      this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
     },
 
     renderFog() {
@@ -119,7 +123,8 @@
       if (!w || !h) return;
       const ctx = this.fog.getContext("2d");
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "rgba(30, 24, 16, 0.82)";
+      // Fully opaque fog - you really cannot see the unrevealed parts
+      ctx.fillStyle = "#1a1612";
       ctx.fillRect(0, 0, w, h);
       if (this.state.mode === "discrete") this.renderDiscreteFog(ctx);
       else this.renderFlashlightFog(ctx);
@@ -189,10 +194,18 @@
 
     move(dc, dr) {
       if (this.state.complete) return;
+      // Always update facing, even if we can't actually move
+      if (dr === -1 && dc === 0) this.state.facing = "up";
+      else if (dr === 1 && dc === 0) this.state.facing = "down";
+      else if (dc === -1 && dr === 0) this.state.facing = "left";
+      else if (dc === 1 && dr === 0) this.state.facing = "right";
+
       const nc = this.state.pat.c + dc;
       const nr = this.state.pat.r + dr;
-      if (!inBounds(nc, nr)) return;
-      if (isObstacle(nc, nr)) return;
+      if (!inBounds(nc, nr) || isObstacle(nc, nr)) {
+        this.renderPat(); // still show the turn
+        return;
+      }
       this.state.pat.c = nc;
       this.state.pat.r = nr;
       this.state.visited.add(key(nc, nr));
@@ -238,12 +251,15 @@
 
     onComplete() {
       this.state.complete = true;
-      this.fog.style.transition = "opacity 1.2s";
+      // Phase 1: briefly reveal the full board — as if stepping into the van
+      // lets you finally see the clearing whole
+      this.fog.style.transition = "opacity 1.8s ease-out";
       this.fog.style.opacity = "0";
+      // Phase 2: show the completion text
       setTimeout(() => {
         this.completeMsg.textContent = "The bus. And the smell of something smoky.";
         this.completeMsg.classList.add("visible");
-      }, 900);
+      }, 1200);
     },
   };
 })();

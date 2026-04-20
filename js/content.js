@@ -401,13 +401,15 @@ const CHAPTERS = [
 
       <!--GAME:maze-->
 
-      <p class="no-indent">You see Red jumping out of the bushes, meowing at you with worry but happy that she can see you. She's on the other side of the river. You think of anything that could help you defeat your predator, and you wished the game gave you more items to interact with than just a set of keys and a golden orb. In an act of desperation you throw the golden orb in front of the chef, the monster has finally caught on, and you know you're it. There's only that little orb between you and him. As there's no protection any more. You hope, remembering what the final words spoken to you at the castle were, and close your eyes. You're scared out of your mind as you wait for the inevitable.</p>
+      <div class="locked-until-maze" id="queen-after-maze" aria-hidden="true">
+        <p class="no-indent">You see Red jumping out of the bushes, meowing at you with worry but happy that she can see you. She's on the other side of the river. You think of anything that could help you defeat your predator, and you wished the game gave you more items to interact with than just a set of keys and a golden orb. In an act of desperation you throw the golden orb in front of the chef, the monster has finally caught on, and you know you're it. There's only that little orb between you and him. As there's no protection any more. You hope, remembering what the final words spoken to you at the castle were, and close your eyes. You're scared out of your mind as you wait for the inevitable.</p>
 
-      <p>You suddenly hear the beast roar, but not in anger — it's fear! You hear a loud thud, and a thunderous impact propagates through the ground, followed by a loud meow, and a splash of water.</p>
+        <p>You suddenly hear the beast roar, but not in anger — it's fear! You hear a loud thud, and a thunderous impact propagates through the ground, followed by a loud meow, and a splash of water.</p>
 
-      <p>Somehow you feel safe to open your eyes...</p>
+        <p>Somehow you feel safe to open your eyes...</p>
 
-      <div class="chapter-end">· · ·</div>
+        <div class="chapter-end">· · ·</div>
+      </div>
     `
   },
 

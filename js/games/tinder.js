@@ -22,6 +22,21 @@
   // Firepit - where Pat starts (bottom-left now).
   const FIREPIT = { x: 9, y: 77 };
 
+  // Obstacle zones - Pat can't walk onto these. (x, y, radius) in percent.
+  const OBSTACLE_ZONES = [
+    { x: 9, y: 77, r: 8 },   // firepit - the embery blob
+    { x: 78, y: 45, r: 8 },  // boot / trash-furniture in the middle-right
+  ];
+
+  function hitsObstacle(x, y) {
+    for (const o of OBSTACLE_ZONES) {
+      const dx = x - o.x;
+      const dy = y - o.y;
+      if (dx * dx + dy * dy < o.r * o.r) return true;
+    }
+    return false;
+  }
+
   const STEP = 7;
 
   // The river flows across the top. Returns the MIN allowed y for a given x
@@ -78,6 +93,7 @@
         remaining: ITEMS.slice(),
         complete: false,
         focused: false,
+        facing: "right", // starts facing into the scene
       };
 
       // Place item markers
@@ -126,6 +142,9 @@
     renderPat() {
       this.pat.style.left = this.state.pat.x + "%";
       this.pat.style.top = this.state.pat.y + "%";
+      // Default sprite faces left. Mirror-flip when facing right. Vertical moves keep last facing.
+      const scale = this.state.facing === "right" ? "-1" : "1";
+      this.pat.style.transform = `translate(-50%, -50%) scaleX(${scale})`;
     },
 
     bindControls() {
@@ -166,11 +185,20 @@
     },
 
     move(dx, dy) {
+      // Update facing on horizontal moves only
+      if (dx > 0) this.state.facing = "right";
+      else if (dx < 0) this.state.facing = "left";
+
       const nx = Math.max(4, Math.min(96, this.state.pat.x + dx));
       const ny = Math.max(4, Math.min(96, this.state.pat.y + dy));
       // River check: can't walk UP past the river line
       const minY = minYAt(nx);
       const clampedY = Math.max(ny, minY);
+      // Obstacle check - firepit, boot
+      if (hitsObstacle(nx, clampedY)) {
+        this.renderPat(); // still show the turn
+        return;
+      }
       this.state.pat.x = nx;
       this.state.pat.y = clampedY;
       this.renderPat();

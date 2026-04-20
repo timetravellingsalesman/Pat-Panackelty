@@ -521,43 +521,68 @@ body::before {
 .scramble-slots {
   display: flex;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   flex-wrap: wrap;
   margin: 0 auto;
-  padding: 0.6rem 0;
+  padding: 0.8rem 0.5rem;
   background: rgba(195, 160, 105, 0.08);
   border-radius: 4px;
-  min-height: 64px;
+  min-height: 72px;
   align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .scramble-slot {
-  width: 30px;
-  height: 42px;
-  border-bottom: 2px solid var(--ink-faded);
+  width: 42px;
+  height: 54px;
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   font-family: var(--display);
   font-size: 1.4rem;
   font-style: italic;
   color: var(--ink);
-  padding-bottom: 2px;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
+  user-select: none;
+  -webkit-user-select: none;
+  flex-shrink: 0;
+}
+/* The slot's underline — a pseudo element so tiles placed inside don't cover it */
+.scramble-slot::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  height: 2px;
+  background: var(--ink-faded);
+  transition: background 0.3s;
+  z-index: 0;
 }
 .scramble-slot.space {
-  border-bottom: none;
   width: 16px;
 }
-.scramble-slot.dragover {
-  border-color: var(--accent);
-  background: rgba(163, 59, 42, 0.1);
+.scramble-slot.space::after {
+  display: none;
 }
-.scramble-slot.filled {
-  border-color: var(--forest);
+.scramble-slot.dragover::after {
+  background: var(--accent);
+  height: 3px;
 }
-.scramble-slot.locked {
-  border-bottom: 2px solid var(--accent);
+.scramble-slot.filled::after {
+  background: var(--forest);
+}
+.scramble-slot.locked::after {
+  background: var(--accent);
+  height: 3px;
+}
+.scramble-slot.locked .scramble-slot-text {
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--ink);
+  font-size: 1.5rem;
+  z-index: 1;
 }
 .scramble-slot-text {
   position: relative;
@@ -873,10 +898,48 @@ body::before {
 }
 .maze-canvas {
   display: block;
-  background: var(--paper);
+  background: transparent;
   border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(80, 55, 25, 0.15);
   max-width: 100%;
+}
+.maze-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--ink-faded);
+}
+.maze-control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.maze-control-label {
+  font-size: 0.8rem;
+}
+.maze-ctrl-btn {
+  background: var(--paper);
+  color: var(--ink-soft);
+  border: 1px solid var(--rule);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.maze-ctrl-btn:hover {
+  background: var(--paper-deep);
+}
+.maze-ctrl-btn.active {
+  background: var(--accent);
+  color: var(--paper);
+  border-color: var(--accent);
 }
 .maze-hint {
   text-align: center;
@@ -927,4 +990,20 @@ body::before {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ============================================================
+   MAZE GATING: hide post-maze text until the chef is escaped
+   ============================================================ */
+.locked-until-maze {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1.2s ease-out, opacity 1s ease-in;
+  pointer-events: none;
+}
+.locked-until-maze.revealed {
+  max-height: 3000px;
+  opacity: 1;
+  pointer-events: auto;
 }

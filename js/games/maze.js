@@ -1,79 +1,122 @@
-// Maze game - Day 3
-// 13×13 hedge maze traced from your sketch. Frog (Pat) enters top-left,
-// Chef chases from behind. Goal: reach the exit (bottom-right corner, where
-// Red is waiting on the other side of the river).
-// Chef moves via BFS toward frog, but slower — with corner slowdown so
-// the chase feels fair.
+// Maze game
+// Two layouts (your sketch + a Claude-generated alternate) selectable via toggle.
+// Difficulty: easy / normal / hard. Hard default.
+// Chef moves toward frog via BFS, with corner-hesitation and period-based pacing.
 
 (function () {
   const N = 13;
-  // Walls: H_WALLS[r][c] = wall between cell (r,c) and (r+1,c)
-  //        V_WALLS[r][c] = wall between cell (r,c) and (r,c+1)
-  // Traced from maze_source.png
-  const H_WALLS = [
-    [0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,1,1,1,0,1,0,1,0,0,0],
-    [0,1,1,0,1,1,1,1,1,0,1,1,0],
-    [1,1,0,1,1,1,1,1,1,1,0,0,1],
-    [0,1,1,1,0,1,0,0,1,1,0,1,1],
-    [1,1,0,0,1,1,1,0,1,1,1,0,0],
-    [0,1,0,0,0,1,0,1,1,1,1,1,0],
-    [0,1,0,0,0,0,0,0,1,1,0,1,0],
-    [0,0,1,1,0,1,0,0,0,0,1,0,0],
-    [0,1,1,1,1,0,0,0,0,1,1,1,0],
-    [1,0,0,0,0,0,1,1,0,0,1,0,0],
-  ];
-  const V_WALLS = [
-    [0,0,1,1,0,0,1,0,1,0,1,0],
-    [0,0,1,0,1,0,1,1,0,0,1,0],
-    [0,0,0,0,0,1,0,1,1,0,1,1],
-    [0,0,1,0,0,0,1,0,0,1,0,0],
-    [0,0,0,0,0,0,0,0,0,1,0,0],
-    [0,0,0,1,0,0,1,0,0,1,1,0],
-    [0,0,1,0,1,0,1,0,0,0,1,0],
-    [0,0,1,1,0,0,1,0,0,0,0,1],
-    [0,0,1,1,1,1,1,0,0,0,1,0],
-    [0,0,0,1,0,1,1,1,0,1,0,1],
-    [0,0,0,0,1,1,1,1,1,0,0,1],
-    [0,0,0,1,0,1,0,1,1,0,0,1],
-    [0,0,1,0,1,1,0,0,1,0,1,0],
-  ];
+
+  const MAZE_YOURS = {
+    H: [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,1,1,1,0,1,0,1,0,0,0],
+      [0,1,1,0,1,1,1,1,1,0,1,1,0],
+      [1,1,0,1,1,1,1,1,1,1,0,0,1],
+      [0,1,1,1,0,1,0,0,1,1,0,1,1],
+      [1,1,0,0,1,1,1,0,1,1,1,0,0],
+      [0,1,0,0,0,1,0,1,1,1,1,1,0],
+      [0,1,0,0,0,0,0,0,1,1,0,1,0],
+      [0,0,1,1,0,1,0,0,0,0,1,0,0],
+      [0,1,1,1,1,0,0,0,0,1,1,1,0],
+      [1,0,0,0,0,0,1,1,0,0,1,0,0],
+    ],
+    V: [
+      [0,0,1,1,0,0,1,0,1,0,1,0],
+      [0,0,1,0,1,0,1,1,0,0,1,0],
+      [0,0,0,0,0,1,0,1,1,0,1,1],
+      [0,0,1,0,0,0,1,0,0,1,0,0],
+      [0,0,0,0,0,0,0,0,0,1,0,0],
+      [0,0,0,1,0,0,1,0,0,1,1,0],
+      [0,0,1,0,1,0,1,0,0,0,1,0],
+      [0,0,1,1,0,0,1,0,0,0,0,1],
+      [0,0,1,1,1,1,1,0,0,0,1,0],
+      [0,0,0,1,0,1,1,1,0,1,0,1],
+      [0,0,0,0,1,1,1,1,1,0,0,1],
+      [0,0,0,1,0,1,0,1,1,0,0,1],
+      [0,0,1,0,1,1,0,0,1,0,1,0],
+    ],
+  };
+
+  const MAZE_CLAUDE = {
+    H: [[0,1,0,0,1,1,0,0,0,0,0,0,1],[1,0,0,1,0,1,0,1,1,0,1,1,0],[0,0,0,0,0,0,1,1,0,1,0,0,0],[0,0,0,0,1,0,1,0,0,0,0,0,0],[0,0,0,0,0,1,0,1,1,1,1,0,0],[0,1,0,0,1,0,1,1,0,1,0,0,0],[0,0,0,0,0,1,0,1,1,0,1,0,0],[1,0,0,1,0,0,0,0,1,1,0,0,0],[0,0,1,1,0,0,0,0,1,0,0,1,0],[0,1,0,0,0,1,1,0,1,0,0,0,1],[0,0,1,0,0,0,1,0,0,1,1,1,0],[0,0,1,1,0,1,1,1,0,0,0,0,0]],
+    V: [[1,0,0,0,0,0,0,1,1,0,0,0],[0,1,0,0,0,1,1,0,1,1,0,0],[1,0,1,1,0,1,0,0,1,0,1,0],[1,1,1,0,1,0,0,0,0,1,1,0],[1,1,0,1,0,0,0,0,0,0,1,1],[0,1,0,0,1,0,0,1,0,0,1,1],[1,0,0,0,0,1,0,0,1,0,0,1],[0,1,0,0,0,1,1,0,0,0,0,1],[1,0,0,0,1,1,1,0,0,1,0,1],[0,0,1,0,1,0,1,0,1,1,1,0],[0,1,0,1,0,0,1,1,0,1,0,0],[1,1,0,0,1,0,0,1,1,0,1,0],[1,0,0,0,0,0,0,0,0,1,0,0]],
+  };
+
+  // Generate a random maze via DFS carving + extra openings.
+  // Returns { H, V } in the same shape as the other mazes.
+  function generateMaze() {
+    // Walls present everywhere initially
+    const H = Array.from({ length: N - 1 }, () => Array(N).fill(1));
+    const V = Array.from({ length: N }, () => Array(N - 1).fill(1));
+    const visited = Array.from({ length: N }, () => Array(N).fill(false));
+    // Iterative DFS
+    const stack = [{ r: 0, c: 0 }];
+    visited[0][0] = true;
+    while (stack.length) {
+      const { r, c } = stack[stack.length - 1];
+      const neighbours = [];
+      for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < N && nc >= 0 && nc < N && !visited[nr][nc]) {
+          neighbours.push({ nr, nc, dr, dc });
+        }
+      }
+      if (neighbours.length === 0) { stack.pop(); continue; }
+      const choice = neighbours[Math.floor(Math.random() * neighbours.length)];
+      // Carve the wall
+      if (choice.dr === -1) H[choice.nr][choice.nc] = 0;
+      else if (choice.dr === 1) H[r][c] = 0;
+      else if (choice.dc === -1) V[choice.nr][choice.nc] = 0;
+      else V[r][c] = 0;
+      visited[choice.nr][choice.nc] = true;
+      stack.push({ r: choice.nr, c: choice.nc });
+    }
+    // Knock out some random walls for multiple routes (~18% chance)
+    for (let r = 0; r < N - 1; r++) {
+      for (let c = 0; c < N; c++) {
+        if (H[r][c] && Math.random() < 0.18) H[r][c] = 0;
+      }
+    }
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N - 1; c++) {
+        if (V[r][c] && Math.random() < 0.18) V[r][c] = 0;
+      }
+    }
+    return { H, V };
+  }
 
   const FROG_START = { r: 0, c: 0 };
-  const CHEF_START = { r: 2, c: 0 };  // starts a few cells away
+  const CHEF_START = { r: 3, c: 0 };  // a little further back - real-time is mean
   const GOAL = { r: N - 1, c: N - 1 };
 
-  // How many frog moves per chef move. Higher = frog has more advantage.
-  // On each chef-turn, the chef may also "hesitate" on corners (see below).
-  const CHEF_PERIOD = 3; // chef tries to move every 3 frog moves
-  const CHEF_CORNER_HESITATE = 0.5; // chance he stops for a beat on a turn
+  // Before the chef starts moving on each reset, give Pat this much time to orient.
+  const GRACE_MS = 900;
 
-  function canMove(r, c, dr, dc) {
-    if (dr === -1 && dc === 0) {
-      if (r === 0) return false;
-      return !H_WALLS[r - 1][c];
-    }
-    if (dr === 1 && dc === 0) {
-      if (r === N - 1) return false;
-      return !H_WALLS[r][c];
-    }
-    if (dr === 0 && dc === -1) {
-      if (c === 0) return false;
-      return !V_WALLS[r][c - 1];
-    }
-    if (dr === 0 && dc === 1) {
-      if (c === N - 1) return false;
-      return !V_WALLS[r][c];
-    }
+  // Real-time chef: chef walks on a timer.
+  //   stepMs: ms between chef steps (lower = faster, more dangerous)
+  //   hesitate: chance he pauses when changing direction
+  //   stumble: random chance he skips a step regardless
+  //   random: chance he makes a random adjacent step instead of BFS-optimal
+  const DIFFICULTY = {
+    easy:   { stepMs: 900, hesitate: 0.50, stumble: 0.30, random: 0.35 },
+    normal: { stepMs: 700, hesitate: 0.35, stumble: 0.22, random: 0.22 },
+    hard:   { stepMs: 520, hesitate: 0.22, stumble: 0.14, random: 0.12 },
+  };
+
+  function canMove(maze, r, c, dr, dc) {
+    const { H, V } = maze;
+    if (dr === -1 && dc === 0) return r > 0 && !H[r - 1][c];
+    if (dr === 1 && dc === 0) return r < N - 1 && !H[r][c];
+    if (dr === 0 && dc === -1) return c > 0 && !V[r][c - 1];
+    if (dr === 0 && dc === 1) return c < N - 1 && !V[r][c];
     return false;
   }
 
-  // BFS from start to goal; returns next step toward goal
-  function nextStepToward(start, goal) {
+  function nextStepToward(maze, start, goal) {
     if (start.r === goal.r && start.c === goal.c) return null;
     const visited = Array(N).fill(0).map(() => Array(N).fill(null));
-    visited[start.r][start.c] = { r: start.r, c: start.c }; // self
+    visited[start.r][start.c] = { r: start.r, c: start.c };
     const q = [start];
     let head = 0;
     while (head < q.length) {
@@ -82,10 +125,9 @@
         const nr = cur.r + dr, nc = cur.c + dc;
         if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
         if (visited[nr][nc]) continue;
-        if (!canMove(cur.r, cur.c, dr, dc)) continue;
+        if (!canMove(maze, cur.r, cur.c, dr, dc)) continue;
         visited[nr][nc] = cur;
         if (nr === goal.r && nc === goal.c) {
-          // Walk back
           let node = { r: nr, c: nc };
           while (visited[node.r][node.c].r !== start.r || visited[node.r][node.c].c !== start.c) {
             node = visited[node.r][node.c];
@@ -104,14 +146,28 @@
       const game = document.createElement("div");
       game.className = "maze-game";
       game.innerHTML = `
+        <div class="maze-controls">
+          <div class="maze-control-group">
+            <span class="maze-control-label">maze:</span>
+            <button class="maze-ctrl-btn active" data-maze="yours">yours</button>
+            <button class="maze-ctrl-btn" data-maze="claude">alt</button>
+            <button class="maze-ctrl-btn" data-maze="random">random</button>
+          </div>
+          <div class="maze-control-group">
+            <span class="maze-control-label">difficulty:</span>
+            <button class="maze-ctrl-btn" data-diff="easy">easy</button>
+            <button class="maze-ctrl-btn" data-diff="normal">normal</button>
+            <button class="maze-ctrl-btn active" data-diff="hard">hard</button>
+          </div>
+        </div>
         <div class="maze-status">
-          <span class="maze-status-text" id="maze-status-text">The hedge maze. Hop to the far corner.</span>
+          <span class="maze-status-text" id="maze-status-text">Hop to the far corner.</span>
           <button class="maze-restart" id="maze-restart" style="display:none;">start again</button>
         </div>
         <div class="maze-board-wrap" id="maze-board-wrap">
           <canvas class="maze-canvas" id="maze-canvas"></canvas>
         </div>
-        <p class="maze-hint">Arrow keys or tap a direction near Pat to hop. The chef is slower. Don't get caught.</p>
+        <p class="maze-hint">Arrow keys or tap a direction near Pat. The chef is slower. Don't get caught.</p>
       `;
       el.appendChild(game);
 
@@ -121,7 +177,11 @@
       this.restartBtn = game.querySelector("#maze-restart");
       this.ctx = this.canvas.getContext("2d");
 
+      this.activeMazeKey = "yours";
+      this.activeMaze = MAZE_YOURS;
+      this.difficulty = DIFFICULTY.hard;
       this.state = null;
+
       this.frogImg = new Image();
       this.frogImg.src = "assets/frog.png";
       this.chefImg = new Image();
@@ -142,26 +202,126 @@
 
       window.addEventListener("resize", () => this.resize());
       this.restartBtn.addEventListener("click", () => this.reset());
+
+      // Stop the chef timer when navigating away from this chapter;
+      // restart it when coming back (only if not already complete/caught).
+      window.addEventListener("chapterChange", (e) => {
+        const chId = e.detail && e.detail.chapter && e.detail.chapter.id;
+        if (chId === "queen") {
+          // Restart loop if the game is still active
+          if (this.state && !this.state.complete && !this.state.caught && !this._chefRaf) {
+            this._chefLastStepAt = performance.now();
+            this.startChefLoop();
+          }
+        } else {
+          this.stopChefLoop();
+        }
+      });
+
+      game.querySelectorAll("[data-maze]").forEach((b) => {
+        b.addEventListener("click", () => {
+          game.querySelectorAll("[data-maze]").forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+          this.activeMazeKey = b.dataset.maze;
+          this.reset();
+        });
+      });
+      game.querySelectorAll("[data-diff]").forEach((b) => {
+        b.addEventListener("click", () => {
+          game.querySelectorAll("[data-diff]").forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+          this.difficulty = DIFFICULTY[b.dataset.diff];
+          this.reset();
+        });
+      });
     },
 
     reset() {
+      this.stopChefLoop();
+      // Choose active maze based on toggle; random regenerates every reset
+      if (this.activeMazeKey === "claude") this.activeMaze = MAZE_CLAUDE;
+      else if (this.activeMazeKey === "random") this.activeMaze = generateMaze();
+      else this.activeMaze = MAZE_YOURS;
+
       this.state = {
         frog: { ...FROG_START },
         chef: { ...CHEF_START },
-        moveCount: 0,
         complete: false,
         caught: false,
+        chefFacing: "left", // initial direction
+        frogFacing: "left",
       };
-      this.statusText.textContent = "The hedge maze. Hop to the far corner.";
+      this.statusText.textContent = "Hop to the far corner.";
       this.statusText.style.color = "";
       this.restartBtn.style.display = "none";
       this.draw();
+      this.startChefLoop();
+    },
+
+    startChefLoop() {
+      // Give Pat a grace period before the chef starts
+      this._chefLastStepAt = performance.now() + GRACE_MS - this.difficulty.stepMs;
+      const tick = () => {
+        if (!this.state || this.state.complete || this.state.caught) {
+          this._chefRaf = null;
+          return;
+        }
+        const now = performance.now();
+        if (now - this._chefLastStepAt >= this.difficulty.stepMs) {
+          this._chefLastStepAt = now;
+          this.chefStep();
+        }
+        this._chefRaf = requestAnimationFrame(tick);
+      };
+      this._chefRaf = requestAnimationFrame(tick);
+    },
+
+    stopChefLoop() {
+      if (this._chefRaf) {
+        cancelAnimationFrame(this._chefRaf);
+        this._chefRaf = null;
+      }
+    },
+
+    chefStep() {
+      if (Math.random() < this.difficulty.stumble) return;
+
+      let step;
+      // Sometimes the chef makes a random move instead of optimal BFS
+      if (Math.random() < this.difficulty.random) {
+        const opts = [];
+        const ch = this.state.chef;
+        for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+          if (canMove(this.activeMaze, ch.r, ch.c, dr, dc)) {
+            opts.push({ r: ch.r + dr, c: ch.c + dc });
+          }
+        }
+        if (opts.length === 0) return;
+        step = opts[Math.floor(Math.random() * opts.length)];
+      } else {
+        step = nextStepToward(this.activeMaze, this.state.chef, this.state.frog);
+        if (!step) return;
+      }
+
+      if (this.state._lastChefDir) {
+        const newDir = [step.r - this.state.chef.r, step.c - this.state.chef.c];
+        if (newDir[0] !== this.state._lastChefDir[0] || newDir[1] !== this.state._lastChefDir[1]) {
+          if (Math.random() < this.difficulty.hesitate) return;
+        }
+      }
+      this.state._lastChefDir = [step.r - this.state.chef.r, step.c - this.state.chef.c];
+      // Only update facing on horizontal moves
+      const dc = step.c - this.state.chef.c;
+      if (dc === 1) this.state.chefFacing = "right";
+      else if (dc === -1) this.state.chefFacing = "left";
+      this.state.chef = step;
+      this.draw();
+      this.checkEndConditions();
     },
 
     resize() {
       const rect = this.wrap.getBoundingClientRect();
       let w = rect.width;
-      // If the wrap has no width yet (layout not done), retry shortly.
       if (!w || w < 20) {
         requestAnimationFrame(() => this.resize());
         return;
@@ -184,25 +344,44 @@
       const s = this.size;
       const cell = this.cell;
       if (!ctx || !cell) return;
-      // Background - soft cream
-      ctx.fillStyle = "#f5eedc";
-      ctx.fillRect(0, 0, s, s);
-      // Goal tile highlight
-      ctx.fillStyle = "rgba(201, 155, 60, 0.3)"; // gold tint
+
+      ctx.clearRect(0, 0, s, s);
+
+      // Goal tile highlight (warm cream, brighter than paper)
+      ctx.fillStyle = "rgba(201, 155, 60, 0.18)";
       ctx.fillRect(GOAL.c * cell, GOAL.r * cell, cell, cell);
 
-      // Walls
-      ctx.strokeStyle = "#4a6b3a"; // forest green for hedge
+      const { H, V } = this.activeMaze;
+      ctx.strokeStyle = "#4a6b3a";
       ctx.lineWidth = Math.max(2, cell * 0.12);
       ctx.lineCap = "round";
 
-      // Outer border
-      ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, s - ctx.lineWidth, s - ctx.lineWidth);
+      // Outer border - but leave a gap at the goal cell (right edge and bottom edge)
+      const bw = ctx.lineWidth;
+      // top
+      ctx.beginPath();
+      ctx.moveTo(bw / 2, bw / 2);
+      ctx.lineTo(s - bw / 2, bw / 2);
+      ctx.stroke();
+      // left
+      ctx.beginPath();
+      ctx.moveTo(bw / 2, bw / 2);
+      ctx.lineTo(bw / 2, s - bw / 2);
+      ctx.stroke();
+      // right - skip the goal cell portion
+      ctx.beginPath();
+      ctx.moveTo(s - bw / 2, bw / 2);
+      ctx.lineTo(s - bw / 2, GOAL.r * cell);
+      ctx.stroke();
+      // bottom - skip the goal cell portion
+      ctx.beginPath();
+      ctx.moveTo(bw / 2, s - bw / 2);
+      ctx.lineTo(GOAL.c * cell, s - bw / 2);
+      ctx.stroke();
 
-      // Horizontal walls
       for (let r = 0; r < N - 1; r++) {
         for (let c = 0; c < N; c++) {
-          if (H_WALLS[r][c]) {
+          if (H[r][c]) {
             ctx.beginPath();
             ctx.moveTo(c * cell, (r + 1) * cell);
             ctx.lineTo((c + 1) * cell, (r + 1) * cell);
@@ -210,10 +389,9 @@
           }
         }
       }
-      // Vertical walls
       for (let r = 0; r < N; r++) {
         for (let c = 0; c < N - 1; c++) {
-          if (V_WALLS[r][c]) {
+          if (V[r][c]) {
             ctx.beginPath();
             ctx.moveTo((c + 1) * cell, r * cell);
             ctx.lineTo((c + 1) * cell, (r + 1) * cell);
@@ -222,59 +400,61 @@
         }
       }
 
-      // Goal decoration - a little gold dot / orb
-      ctx.fillStyle = "#c89b3c";
-      ctx.beginPath();
-      ctx.arc((GOAL.c + 0.5) * cell, (GOAL.r + 0.5) * cell, cell * 0.2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Frog
+      // Frog - drawn with horizontal flip based on facing
       const f = this.state.frog;
       const fx = (f.c + 0.5) * cell;
       const fy = (f.r + 0.5) * cell;
-      const spriteSize = cell * 0.75;
+      const maxFrog = cell * 0.92;
+      const frogRatio = this.frogImg.width / this.frogImg.height;
+      let fw, fh;
+      if (frogRatio >= 1) { fw = maxFrog; fh = maxFrog / frogRatio; }
+      else { fh = maxFrog; fw = maxFrog * frogRatio; }
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.frogImg, fx - spriteSize / 2, fy - spriteSize / 2, spriteSize, spriteSize);
+      this.drawSprite(this.frogImg, fx, fy, fw, fh, this.state.frogFacing);
 
       // Chef
       const ch = this.state.chef;
       const cx = (ch.c + 0.5) * cell;
       const cy = (ch.r + 0.5) * cell;
-      const chefSize = cell * 0.85;
-      ctx.drawImage(this.chefImg, cx - chefSize / 2, cy - chefSize * 0.6, chefSize * (22 / 33), chefSize);
+      const maxChef = cell * 0.95;
+      const chefRatio = this.chefImg.width / this.chefImg.height;
+      let chw, chh;
+      if (chefRatio >= 1) { chw = maxChef; chh = maxChef / chefRatio; }
+      else { chh = maxChef; chw = maxChef * chefRatio; }
+      this.drawSprite(this.chefImg, cx, cy, chw, chh, this.state.chefFacing);
+    },
+
+    // Draw a sprite centered at (cx, cy) with size (w, h), flipped horizontally if facing "right"
+    // (sprites are drawn facing left by default)
+    drawSprite(img, cx, cy, w, h, facing) {
+      const ctx = this.ctx;
+      ctx.save();
+      if (facing === "right") {
+        ctx.translate(cx, cy);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      } else {
+        ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+      }
+      ctx.restore();
     },
 
     moveFrog(dr, dc) {
-      if (this.state.complete || this.state.caught) return;
+      if (!this.state || this.state.complete || this.state.caught) return;
       const f = this.state.frog;
-      if (!canMove(f.r, f.c, dr, dc)) return;
+      if (!canMove(this.activeMaze, f.r, f.c, dr, dc)) return;
       f.r += dr;
       f.c += dc;
-      this.state.moveCount++;
-      // Chef moves every CHEF_PERIOD frog moves
-      if (this.state.moveCount % CHEF_PERIOD === 0) {
-        this.moveChef();
-      }
+      // Only update facing on horizontal moves; keep last direction for vertical moves
+      if (dc === 1) this.state.frogFacing = "right";
+      else if (dc === -1) this.state.frogFacing = "left";
       this.draw();
       this.checkEndConditions();
     },
 
+    // Legacy method kept for clarity — no longer called
     moveChef() {
-      const step = nextStepToward(this.state.chef, this.state.frog);
-      if (!step) return;
-      // Corner slowdown: if the chef's next move changes direction from his
-      // last move, there's a chance he hesitates (doesn't move this turn).
-      if (this.state._lastChefDir) {
-        const newDir = [step.r - this.state.chef.r, step.c - this.state.chef.c];
-        if (newDir[0] !== this.state._lastChefDir[0] || newDir[1] !== this.state._lastChefDir[1]) {
-          if (Math.random() < CHEF_CORNER_HESITATE) {
-            // Hesitate on corner
-            return;
-          }
-        }
-      }
-      this.state._lastChefDir = [step.r - this.state.chef.r, step.c - this.state.chef.c];
-      this.state.chef = step;
+      this.chefStep();
     },
 
     checkEndConditions() {
@@ -282,21 +462,29 @@
       const ch = this.state.chef;
       if (f.r === GOAL.r && f.c === GOAL.c) {
         this.state.complete = true;
+        this.stopChefLoop();
         this.statusText.textContent = "You made it to Red.";
         this.statusText.style.color = "var(--forest)";
         this.restartBtn.style.display = "inline-block";
         this.restartBtn.textContent = "play again";
+        // Reveal the post-maze text
+        const locked = document.getElementById("queen-after-maze");
+        if (locked) {
+          locked.classList.add("revealed");
+          locked.setAttribute("aria-hidden", "false");
+        }
+        // Unblock chapter-forward nav — dispatch a custom event the book can listen to
+        window.dispatchEvent(new CustomEvent("mazeWon"));
         return;
       }
       if (f.r === ch.r && f.c === ch.c) {
         this.state.caught = true;
+        this.stopChefLoop();
         this.statusText.textContent = "Caught! The chef grabs you...";
         this.statusText.style.color = "var(--accent)";
         this.restartBtn.style.display = "inline-block";
         this.restartBtn.textContent = "try again";
-        setTimeout(() => {
-          if (this.state.caught) this.reset();
-        }, 1600);
+        setTimeout(() => { if (this.state.caught) this.reset(); }, 1600);
       }
     },
 
@@ -317,7 +505,6 @@
       };
       window.addEventListener("keydown", handler, true);
 
-      // Touch: tap adjacent cell or any cell - move toward it 1 step
       this.canvas.addEventListener("pointerdown", (e) => {
         if (!this.state || this.state.complete || this.state.caught) return;
         const rect = this.canvas.getBoundingClientRect();
@@ -331,7 +518,6 @@
         else if (dc !== 0) this.moveFrog(0, Math.sign(dc));
       });
 
-      // Swipe support for mobile
       let touchStart = null;
       this.canvas.addEventListener("touchstart", (e) => {
         if (e.touches.length === 1) {
@@ -342,12 +528,9 @@
         if (!touchStart || !e.changedTouches[0]) return;
         const dx = e.changedTouches[0].clientX - touchStart.x;
         const dy = e.changedTouches[0].clientY - touchStart.y;
-        if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // was a tap, not swipe
-        if (Math.abs(dx) > Math.abs(dy)) {
-          this.moveFrog(0, Math.sign(dx));
-        } else {
-          this.moveFrog(Math.sign(dy), 0);
-        }
+        if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+        if (Math.abs(dx) > Math.abs(dy)) this.moveFrog(0, Math.sign(dx));
+        else this.moveFrog(Math.sign(dy), 0);
         touchStart = null;
       }, { passive: true });
     },

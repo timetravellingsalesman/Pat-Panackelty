@@ -143,15 +143,24 @@ const BOOK = {
     const entry = VOCAB[key];
     if (!entry || !entry.nested) return;
     const content = document.getElementById('panel-content');
-    // Append the nested content as another entry
+    // If already shown, don't append again
+    if (content.querySelector('.panel-nested-entry')) return;
     const paragraphs = entry.nested.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
     const additional = document.createElement('div');
-    additional.className = 'panel-entry';
+    additional.className = 'panel-entry panel-nested-entry';
     additional.innerHTML = `
       <h2 class="panel-word">${entry.nested.title}</h2>
       <div class="panel-def">${paragraphs}</div>
     `;
     content.appendChild(additional);
+    // Disable further clicks on the trigger
+    const triggers = content.querySelectorAll('.panel-nested-trigger');
+    triggers.forEach(t => {
+      t.style.opacity = '0.5';
+      t.style.cursor = 'default';
+      t.style.borderBottom = 'none';
+      t.replaceWith(t.cloneNode(true)); // strip event listeners
+    });
     // Scroll the panel to reveal the new entry
     setTimeout(() => {
       additional.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -167,6 +176,22 @@ const BOOK = {
 
   goTo(index) {
     if (index < 0 || index >= this.chapters.length) return;
+    // Gating: if leaving the queen chapter forward to wake, require maze win
+    const current = this.chapters[this.currentIndex];
+    if (current && current.id === 'queen' && !this.mazeWon && index > this.currentIndex) {
+      // Forward navigation blocked
+      const ind = document.getElementById('chapter-indicator');
+      if (ind) {
+        const original = ind.textContent;
+        ind.textContent = 'escape the chef first';
+        ind.style.color = 'var(--accent)';
+        setTimeout(() => {
+          ind.style.color = '';
+          this.updateNav();
+        }, 1400);
+      }
+      return;
+    }
     this.currentIndex = index;
     document.querySelectorAll('.chapter').forEach(el => el.classList.remove('active'));
     const target = document.querySelector(`[data-index="${index}"]`);
@@ -199,6 +224,12 @@ const BOOK = {
     document.getElementById('prev-btn').addEventListener('click', () => this.prev());
     document.getElementById('next-btn').addEventListener('click', () => this.next());
     document.querySelector('.panel-close').addEventListener('click', () => this.closePanel());
+
+    // Listen for the maze-win event to unlock forward navigation
+    window.addEventListener('mazeWon', () => {
+      this.mazeWon = true;
+      this.updateNav();
+    });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.closePanel();
