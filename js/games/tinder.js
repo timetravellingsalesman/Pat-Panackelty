@@ -41,7 +41,7 @@
       game.innerHTML = `
         <div class="tinder-board-wrap" id="tinder-board-wrap">
           <img class="tinder-board-img" src="assets/tinder_board.jpg" alt="" draggable="false">
-          <img class="tinder-pat" src="assets/pat.png" alt="Pat" draggable="false" id="tinder-pat">
+          <img class="tinder-pat" src="assets/pat_sprite.png" alt="Pat" draggable="false" id="tinder-pat">
         </div>
         <div class="tinder-sidebar">
           <div class="tinder-counter" id="counter-cattail">

@@ -62,7 +62,7 @@
         <div class="forest-board-wrap" id="forest-board-wrap">
           <img class="forest-board-img" src="assets/board.jpg" alt="" draggable="false">
           <canvas class="forest-fog" id="forest-fog"></canvas>
-          <img class="forest-pat" src="assets/pat.png" alt="Pat" draggable="false" id="forest-pat">
+          <img class="forest-pat" src="assets/pat_sprite.png" alt="Pat" draggable="false" id="forest-pat">
         </div>
         <p class="forest-hint">Arrow keys or tap to move. Find the van.</p>
         <div class="forest-complete" id="forest-complete"></div>

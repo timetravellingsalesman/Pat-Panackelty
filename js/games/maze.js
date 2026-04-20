@@ -278,6 +278,9 @@
           this._chefLastStepAt = now;
           this.chefStep();
         }
+        // Redraw every frame so the chef (and any frog animation) glide
+        // between cells instead of jumping discretely.
+        this.draw();
         this._chefRaf = requestAnimationFrame(tick);
       };
       this._chefRaf = requestAnimationFrame(tick);
@@ -321,8 +324,18 @@
       const dc = step.c - this.state.chef.c;
       if (dc === 1) this.state.chefFacing = "right";
       else if (dc === -1) this.state.chefFacing = "left";
+      // Start a glide animation from the current logical position to the new one.
+      // Duration slightly shorter than stepMs so the chef settles briefly before
+      // the next step instead of colliding with it.
+      this.state.chefAnim = {
+        fromR: this.state.chef.r,
+        fromC: this.state.chef.c,
+        toR: step.r,
+        toC: step.c,
+        startAt: performance.now(),
+        durMs: Math.max(120, this.difficulty.stepMs * 0.85),
+      };
       this.state.chef = step;
-      this.draw();
       this.checkEndConditions();
     },
 
@@ -407,28 +420,52 @@
         }
       }
 
+      // Compute a shared pixel scale so the frog and chef are rendered
+      // at the same source-pixel-to-screen-pixel ratio. The chef is the
+      // "reference" sprite: we size it so its larger dimension ~fills 90%
+      // of a cell, then apply the same scale to the frog. This makes the
+      // frog appear smaller (since it has fewer source pixels) while the
+      // pixels themselves are the same on-screen size for both sprites.
+      const chefMax = Math.max(this.chefImg.width, this.chefImg.height);
+      const pixelScale = (cell * 0.90) / chefMax;
+      // Crisp pixel-art rendering for both sprites
+      ctx.imageSmoothingEnabled = false;
+
       // Frog - drawn with horizontal flip based on facing
       const f = this.state.frog;
-      const fx = (f.c + 0.5) * cell;
-      const fy = (f.r + 0.5) * cell;
-      const maxFrog = cell * 0.92;
-      const frogRatio = this.frogImg.width / this.frogImg.height;
-      let fw, fh;
-      if (frogRatio >= 1) { fw = maxFrog; fh = maxFrog / frogRatio; }
-      else { fh = maxFrog; fw = maxFrog * frogRatio; }
-      ctx.imageSmoothingEnabled = false;
+      // Use interpolated position if an animation is running
+      const fPos = this.state.frogAnim
+        ? this.interpPos(this.state.frogAnim)
+        : { r: f.r, c: f.c };
+      const fx = (fPos.c + 0.5) * cell;
+      const fy = (fPos.r + 0.5) * cell;
+      const fw = this.frogImg.width * pixelScale;
+      const fh = this.frogImg.height * pixelScale;
       this.drawSprite(this.frogImg, fx, fy, fw, fh, this.state.frogFacing);
 
       // Chef
       const ch = this.state.chef;
-      const cx = (ch.c + 0.5) * cell;
-      const cy = (ch.r + 0.5) * cell;
-      const maxChef = cell * 0.95;
-      const chefRatio = this.chefImg.width / this.chefImg.height;
-      let chw, chh;
-      if (chefRatio >= 1) { chw = maxChef; chh = maxChef / chefRatio; }
-      else { chh = maxChef; chw = maxChef * chefRatio; }
+      const chPos = this.state.chefAnim
+        ? this.interpPos(this.state.chefAnim)
+        : { r: ch.r, c: ch.c };
+      const cx = (chPos.c + 0.5) * cell;
+      const cy = (chPos.r + 0.5) * cell;
+      const chw = this.chefImg.width * pixelScale;
+      const chh = this.chefImg.height * pixelScale;
       this.drawSprite(this.chefImg, cx, cy, chw, chh, this.state.chefFacing);
+    },
+
+    // Given an animation descriptor { fromR, fromC, toR, toC, startAt, durMs },
+    // return the current interpolated { r, c } position (eased).
+    interpPos(anim) {
+      const now = performance.now();
+      const t = Math.max(0, Math.min(1, (now - anim.startAt) / anim.durMs));
+      // Ease out cubic — feels springier at the start, settles softly
+      const e = 1 - Math.pow(1 - t, 3);
+      return {
+        r: anim.fromR + (anim.toR - anim.fromR) * e,
+        c: anim.fromC + (anim.toC - anim.fromC) * e,
+      };
     },
 
     // Draw a sprite centered at (cx, cy) with size (w, h), flipped horizontally if facing "right"
@@ -455,6 +492,8 @@
       // Only update facing on horizontal moves; keep last direction for vertical moves
       if (dc === 1) this.state.frogFacing = "right";
       else if (dc === -1) this.state.frogFacing = "left";
+      // Frog moves in discrete steps — no animation.
+      this.state.frogAnim = null;
       this.draw();
       this.checkEndConditions();
     },
