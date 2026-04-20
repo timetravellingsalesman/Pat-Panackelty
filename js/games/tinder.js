@@ -1,56 +1,37 @@
-// Tinder collection game
-// Pat walks around Jeannie's lakeside board collecting 3 sticks and 3 cattails.
-// The board image is used as the visual; collectibles are overlay divs at %
-// positions we've calibrated. Pat moves one "step" at a time (arrows / tap).
-// The river on the right is a soft wall - Pat just can't walk that far right.
+// Tinder collection game - grid-based, modeled on the van/forest walk.
+// 7 cols × 3 rows. Pat walks on the lakeside board collecting 3 sticks and 3 cattails.
+// Blocked cells: river (row 0 cols 1-5), boot (5,1), firepit (0,2).
 
 (function () {
-  // Percentages are of the cropped board image (900×378 — now landscape).
-  // x is horizontal (0–100, left to right), y is vertical (0–100, top to bottom).
-  // The river now flows across the TOP of the board; Pat walks on the beach below it.
+  const COLS = 7;
+  const ROWS = 3;
+  const START = { c: 1, r: 1 };  // middle-left, clear of items
+
+  // Cells containing collectibles
   const ITEMS = [
-    // Sticks (the X-shaped hash marks)
-    { id: "s1", type: "stick", x: 9, y: 50 },
-    { id: "s2", type: "stick", x: 19, y: 80 },
-    { id: "s3", type: "stick", x: 78, y: 80 },
-    // Cattails (the oval-headed stalks)
-    { id: "c1", type: "cattail", x: 7, y: 13 },
-    { id: "c2", type: "cattail", x: 33, y: 48 },
-    { id: "c3", type: "cattail", x: 93, y: 17 },
+    // Cattails (3)
+    { id: "c1", type: "cattail", c: 0, r: 0 }, // top-left
+    { id: "c2", type: "cattail", c: 2, r: 1 }, // middle
+    { id: "c3", type: "cattail", c: 6, r: 0 }, // top-right
+    // Sticks (3)
+    { id: "s1", type: "stick", c: 0, r: 1 }, // middle-left
+    { id: "s2", type: "stick", c: 1, r: 2 }, // bottom-left
+    { id: "s3", type: "stick", c: 5, r: 2 }, // bottom-right
   ];
 
-  // Firepit - where Pat starts (bottom-left now).
-  const FIREPIT = { x: 9, y: 77 };
+  // Blocked cells (river, boot, firepit)
+  const OBSTACLES = new Set([
+    // River spans row 0 cols 2-5 (col 1 has just the edge of the river - walkable)
+    "2,0", "3,0", "4,0", "5,0",
+    // Boot (middle-right)
+    "5,1",
+    // Firepit (bottom-left)
+    "0,2",
+  ]);
 
-  // Obstacle zones - Pat can't walk onto these. (x, y, radius) in percent.
-  const OBSTACLE_ZONES = [
-    { x: 9, y: 77, r: 8 },   // firepit - the embery blob
-    { x: 78, y: 45, r: 8 },  // boot / trash-furniture in the middle-right
-  ];
-
-  function hitsObstacle(x, y) {
-    for (const o of OBSTACLE_ZONES) {
-      const dx = x - o.x;
-      const dy = y - o.y;
-      if (dx * dx + dy * dy < o.r * o.r) return true;
-    }
-    return false;
-  }
-
-  const STEP = 7;
-
-  // The river flows across the top. Returns the MIN allowed y for a given x
-  // (Pat can't walk UP past this line).
-  function minYAt(x) {
-    // River dips down from ~y=12% at the edges to ~y=30% in the middle
-    if (x < 10) return 14;
-    if (x < 20) return 18;
-    if (x < 35) return 22;
-    if (x < 55) return 28;
-    if (x < 70) return 22;
-    if (x < 85) return 18;
-    return 14;
-  }
+  function key(c, r) { return c + "," + r; }
+  function isObstacle(c, r) { return OBSTACLES.has(key(c, r)); }
+  function inBounds(c, r) { return c >= 0 && c < COLS && r >= 0 && r < ROWS; }
 
   window.TinderGame = {
     mount(el) {
@@ -71,12 +52,13 @@
             <div class="tinder-counter-label">sticks</div>
             <div class="tinder-counter-num" id="num-stick">3</div>
           </div>
-          <div class="tinder-hint">Arrow keys, or tap near Pat to move her.</div>
+          <div class="tinder-hint">Arrow keys or tap to move. Gather 3 sticks and 3 cattails.</div>
         </div>
       `;
       el.appendChild(game);
 
       this.board = game.querySelector("#tinder-board-wrap");
+      this.boardImg = this.board.querySelector(".tinder-board-img");
       this.pat = game.querySelector("#tinder-pat");
       this.counters = {
         stick: game.querySelector("#num-stick"),
@@ -88,23 +70,22 @@
       };
 
       this.state = {
-        pat: { x: 24, y: 72 }, // open ground east of firepit, clear of items
+        pat: { ...START },
         collected: { stick: 0, cattail: 0 },
         remaining: ITEMS.slice(),
         complete: false,
-        focused: false,
-        facing: "right", // starts facing into the scene
+        facing: "right",
       };
 
-      // Place item markers
       this.itemEls = {};
       ITEMS.forEach((it) => {
+        // Each item marker is positioned at the center of its cell
         const d = document.createElement("div");
         d.className = "tinder-item";
         d.dataset.id = it.id;
-        d.style.left = it.x + "%";
-        d.style.top = it.y + "%";
-        // Draw the item as an SVG icon so it reads well
+        // Position as % of board (center of the cell)
+        d.style.left = ((it.c + 0.5) / COLS) * 100 + "%";
+        d.style.top = ((it.r + 0.5) / ROWS) * 100 + "%";
         d.innerHTML = it.type === "stick" ? this.stickSvg() : this.cattailSvg();
         this.board.appendChild(d);
         this.itemEls[it.id] = d;
@@ -115,7 +96,6 @@
     },
 
     stickSvg() {
-      // Two crossed sticks, in ink
       return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
         <g fill="none" stroke="#2b241a" stroke-width="3.5" stroke-linecap="round">
           <line x1="6" y1="10" x2="34" y2="32"/>
@@ -126,7 +106,6 @@
     },
 
     cattailSvg() {
-      // Three small oval-headed stalks in a little bunch
       return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
         <g fill="none" stroke="#2b241a" stroke-width="2" stroke-linecap="round">
           <line x1="20" y1="36" x2="20" y2="22"/>
@@ -140,80 +119,38 @@
     },
 
     renderPat() {
-      this.pat.style.left = this.state.pat.x + "%";
-      this.pat.style.top = this.state.pat.y + "%";
-      // Default sprite faces left. Mirror-flip when facing right. Vertical moves keep last facing.
+      // Pat is an overlay on the board: position as % of board size
+      const xPct = ((this.state.pat.c + 0.5) / COLS) * 100;
+      const yPct = ((this.state.pat.r + 0.5) / ROWS) * 100;
+      this.pat.style.left = xPct + "%";
+      this.pat.style.top = yPct + "%";
+      // Horizontal flip based on facing. Default sprite faces left; flip on right.
       const scale = this.state.facing === "right" ? "-1" : "1";
       this.pat.style.transform = `translate(-50%, -50%) scaleX(${scale})`;
     },
 
-    bindControls() {
-      const keyHandler = (e) => {
-        if (this.state.complete) return;
-        // Only react to arrows when a chapter-level arrow won't also fire
-        const rect = this.board.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        if (!isVisible) return;
-        let dx = 0, dy = 0;
-        if (e.key === "ArrowUp") dy = -STEP;
-        else if (e.key === "ArrowDown") dy = STEP;
-        else if (e.key === "ArrowLeft") dx = -STEP;
-        else if (e.key === "ArrowRight") dx = STEP;
-        else return;
-        // Intercept so book-level nav doesn't also move chapter
-        e.preventDefault();
-        e.stopPropagation();
-        this.move(dx, dy);
-      };
-      window.addEventListener("keydown", keyHandler, true);
+    move(dc, dr) {
+      if (this.state.complete) return;
+      // Update facing horizontally only
+      if (dc === 1) this.state.facing = "right";
+      else if (dc === -1) this.state.facing = "left";
 
-      // Tap-to-move: tap anywhere on the board, Pat hops toward it (1 step)
-      this.board.addEventListener("pointerdown", (e) => {
-        if (this.state.complete) return;
-        const rect = this.board.getBoundingClientRect();
-        const px = ((e.clientX - rect.left) / rect.width) * 100;
-        const py = ((e.clientY - rect.top) / rect.height) * 100;
-        const dx = px - this.state.pat.x;
-        const dy = py - this.state.pat.y;
-        // Choose whichever axis dominates, step one STEP in that direction
-        if (Math.abs(dx) > Math.abs(dy)) {
-          this.move(dx > 0 ? STEP : -STEP, 0);
-        } else {
-          this.move(0, dy > 0 ? STEP : -STEP);
-        }
-      });
-    },
-
-    move(dx, dy) {
-      // Update facing on horizontal moves only
-      if (dx > 0) this.state.facing = "right";
-      else if (dx < 0) this.state.facing = "left";
-
-      const nx = Math.max(4, Math.min(96, this.state.pat.x + dx));
-      const ny = Math.max(4, Math.min(96, this.state.pat.y + dy));
-      // River check: can't walk UP past the river line
-      const minY = minYAt(nx);
-      const clampedY = Math.max(ny, minY);
-      // Obstacle check - firepit, boot
-      if (hitsObstacle(nx, clampedY)) {
-        this.renderPat(); // still show the turn
+      const nc = this.state.pat.c + dc;
+      const nr = this.state.pat.r + dr;
+      if (!inBounds(nc, nr) || isObstacle(nc, nr)) {
+        this.renderPat();  // show the turn even if blocked
         return;
       }
-      this.state.pat.x = nx;
-      this.state.pat.y = clampedY;
+      this.state.pat.c = nc;
+      this.state.pat.r = nr;
       this.renderPat();
       this.checkCollection();
     },
 
     checkCollection() {
-      const px = this.state.pat.x;
-      const py = this.state.pat.y;
-      // Items Pat is close enough to
+      const { c, r } = this.state.pat;
       this.state.remaining = this.state.remaining.filter((item) => {
-        const dx = item.x - px;
-        const dy = item.y - py;
-        const dist2 = dx * dx + dy * dy;
-        if (dist2 < 64) { // within ~8 percent radius
+        if (item.c === c && item.r === r) {
           this.collect(item);
           return false;
         }
@@ -229,7 +166,7 @@
       this.counters[item.type].textContent = remaining;
       const box = this.counterBoxes[item.type];
       box.classList.remove("bump");
-      void box.offsetWidth; // restart animation
+      void box.offsetWidth;
       box.classList.add("bump");
       if (remaining === 0) box.classList.add("done");
 
@@ -238,14 +175,50 @@
       }
     },
 
+    bindControls() {
+      const keyHandler = (e) => {
+        if (this.state.complete) return;
+        const rect = this.board.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (!isVisible) return;
+        let dc = 0, dr = 0;
+        if (e.key === "ArrowUp") dr = -1;
+        else if (e.key === "ArrowDown") dr = 1;
+        else if (e.key === "ArrowLeft") dc = -1;
+        else if (e.key === "ArrowRight") dc = 1;
+        else return;
+        e.preventDefault();
+        e.stopPropagation();
+        this.move(dc, dr);
+      };
+      window.addEventListener("keydown", keyHandler, true);
+
+      // Tap-to-move: tap adjacent cell
+      this.board.addEventListener("pointerdown", (e) => {
+        if (this.state.complete) return;
+        const rect = this.board.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width;
+        const py = (e.clientY - rect.top) / rect.height;
+        const c = Math.floor(px * COLS);
+        const r = Math.floor(py * ROWS);
+        const dc = c - this.state.pat.c;
+        const dr = r - this.state.pat.r;
+        if (Math.abs(dc) + Math.abs(dr) === 1) {
+          this.move(dc, dr);
+        } else if (Math.abs(dc) + Math.abs(dr) > 1) {
+          if (Math.abs(dc) > Math.abs(dr)) this.move(Math.sign(dc), 0);
+          else this.move(0, Math.sign(dr));
+        }
+      });
+    },
+
     onComplete() {
       this.state.complete = true;
-      // Move Pat back next to the firepit
+      // Move Pat back next to the firepit visually
       setTimeout(() => {
-        this.state.pat = { x: 22, y: 70 };
+        this.state.pat = { c: 1, r: 2 };  // next to firepit
         this.renderPat();
       }, 400);
-      // After a beat, reveal the completion message
       setTimeout(() => {
         const wrap = this.board.parentElement;
         const msg = document.createElement("div");
@@ -256,7 +229,7 @@
         wrap.parentElement.appendChild(msg);
         requestAnimationFrame(() => { msg.style.opacity = "1"; });
       }, 1400);
-      // Reveal the gated chapter content (letter to Jeannie) and dispatch event
+      // Reveal the gated chapter content
       const locked = document.getElementById("jeannie-after-tinder");
       if (locked) {
         setTimeout(() => {
