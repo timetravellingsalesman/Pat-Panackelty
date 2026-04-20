@@ -213,6 +213,10 @@ const BOOK = {
     prev.disabled = this.currentIndex === 0;
     next.disabled = this.currentIndex >= this.chapters.length - 1;
     const ch = this.chapters[this.currentIndex];
+    // On queen chapter, disable the next button visually until maze is won.
+    if (ch && ch.id === 'queen' && !this.mazeWon) {
+      next.disabled = true;
+    }
     if (ch.isCover) {
       ind.textContent = '— cover —';
     } else {
@@ -229,6 +233,12 @@ const BOOK = {
     window.addEventListener('mazeWon', () => {
       this.mazeWon = true;
       this.updateNav();
+      // Wire up the "open your eyes →" button once revealed
+      const contBtn = document.getElementById('queen-continue-btn');
+      if (contBtn && !contBtn.dataset.wired) {
+        contBtn.dataset.wired = '1';
+        contBtn.addEventListener('click', () => this.next());
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -236,6 +246,10 @@ const BOOK = {
       // Arrow keys for navigation, unless a game is focused
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (document.activeElement && document.activeElement.closest('.game-mount')) return;
+      // Block forward-keyboard navigation while on the queen chapter:
+      // reader must explicitly click the continue button, not arrow out accidentally.
+      const currentCh = this.chapters[this.currentIndex];
+      if (e.key === 'ArrowRight' && currentCh && currentCh.id === 'queen') return;
       if (e.key === 'ArrowRight') this.next();
       if (e.key === 'ArrowLeft') this.prev();
     });

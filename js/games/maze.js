@@ -64,7 +64,6 @@
       }
       if (neighbours.length === 0) { stack.pop(); continue; }
       const choice = neighbours[Math.floor(Math.random() * neighbours.length)];
-      // Carve the wall
       if (choice.dr === -1) H[choice.nr][choice.nc] = 0;
       else if (choice.dr === 1) H[r][c] = 0;
       else if (choice.dc === -1) V[choice.nr][choice.nc] = 0;
@@ -83,6 +82,14 @@
         if (V[r][c] && Math.random() < 0.18) V[r][c] = 0;
       }
     }
+    // Guarantee exit approach: always open the wall between (N-2, N-1) and (N-1, N-1)
+    // (i.e. the cell above the exit) AND between (N-1, N-2) and (N-1, N-1).
+    // This ensures the exit is reachable from at least two directions.
+    H[N - 2][N - 1] = 0;
+    V[N - 1][N - 2] = 0;
+    // Guarantee start (0, 0) has both neighbours open so Pat never feels trapped
+    H[0][0] = 0;  // (0,0) - (1,0) open
+    V[0][0] = 0;  // (0,0) - (0,1) open
     return { H, V };
   }
 
@@ -100,8 +107,8 @@
   //   random: chance he makes a random adjacent step instead of BFS-optimal
   const DIFFICULTY = {
     easy:   { stepMs: 900, hesitate: 0.50, stumble: 0.30, random: 0.35 },
-    normal: { stepMs: 700, hesitate: 0.35, stumble: 0.22, random: 0.22 },
-    hard:   { stepMs: 520, hesitate: 0.22, stumble: 0.14, random: 0.12 },
+    normal: { stepMs: 600, hesitate: 0.30, stumble: 0.18, random: 0.18 },
+    hard:   { stepMs: 380, hesitate: 0.12, stumble: 0.08, random: 0.06 },
   };
 
   function canMove(maze, r, c, dr, dc) {
@@ -149,9 +156,9 @@
         <div class="maze-controls">
           <div class="maze-control-group">
             <span class="maze-control-label">maze:</span>
-            <button class="maze-ctrl-btn active" data-maze="yours">yours</button>
+            <button class="maze-ctrl-btn" data-maze="yours">yours</button>
             <button class="maze-ctrl-btn" data-maze="claude">alt</button>
-            <button class="maze-ctrl-btn" data-maze="random">random</button>
+            <button class="maze-ctrl-btn active" data-maze="random">random</button>
           </div>
           <div class="maze-control-group">
             <span class="maze-control-label">difficulty:</span>
@@ -177,8 +184,8 @@
       this.restartBtn = game.querySelector("#maze-restart");
       this.ctx = this.canvas.getContext("2d");
 
-      this.activeMazeKey = "yours";
-      this.activeMaze = MAZE_YOURS;
+      this.activeMazeKey = "random";
+      this.activeMaze = MAZE_YOURS;  // placeholder; reset() will regenerate
       this.difficulty = DIFFICULTY.hard;
       this.state = null;
 
@@ -472,8 +479,13 @@
         if (locked) {
           locked.classList.add("revealed");
           locked.setAttribute("aria-hidden", "false");
+          // Give the CSS transition a beat, then smooth-scroll down so the reader
+          // sees the new text appear below the maze.
+          setTimeout(() => {
+            locked.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 1200);
         }
-        // Unblock chapter-forward nav — dispatch a custom event the book can listen to
+        // Unblock chapter-forward nav
         window.dispatchEvent(new CustomEvent("mazeWon"));
         return;
       }

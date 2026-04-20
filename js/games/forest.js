@@ -7,25 +7,24 @@
 (function () {
   const COLS = 7;
   const ROWS = 5;
-  const START = { c: 0, r: 2 };  // left edge, middle row (grass/path)
-  const GOAL = { c: 6, r: 1 };   // van door, upper-right
+  const START = { c: 0, r: 0 };  // top-left, matches the drawn path
+  const GOAL = { c: 6, r: 0 };   // van door at top-right
   const FLASHLIGHT_RADIUS = 1.8;
 
-  // Obstacles - hand-mapped to the 7x5 grid.
-  // Each drawn element occupies one game-cell (= 3x3 notebook squares).
+  // Obstacles - hand-mapped to the 7x5 grid, consistent with drawn escape route.
   const OBSTACLES = new Set([
-    // Van - top right area, spans a few cells
-    "3,0", "4,0", "5,0", "6,0",
-    // Monkey creature
+    // Van body - top row cells 3,4,5; (6,0) is the DOOR (goal, walkable)
+    "3,0", "4,0", "5,0",
+    // Monkey at (1,1)
     "1,1",
-    // Potted plant
-    "5,1",
-    // Bathtub + snake in the middle
+    // Potted plant at (4,1) - in the upper-middle-right
+    "4,1",
+    // Bathtub with snake head
     "2,2", "3,2",
     // Palm on the left edge (leftmost "flower")
     "0,3",
-    // Flower/bushes + cat + acorn bottom row
-    "3,4", "4,4", "5,4",
+    // Bottom row doodads: flower, cat, acorn, worm
+    "3,4", "4,4", "5,4", "6,4",
   ]);
 
   function key(c, r) { return c + "," + r; }

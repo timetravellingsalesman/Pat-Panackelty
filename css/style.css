@@ -533,8 +533,8 @@ body::before {
   -webkit-user-select: none;
 }
 .scramble-slot {
-  width: 42px;
-  height: 54px;
+  width: 46px;
+  height: 60px;
   position: relative;
   display: flex;
   align-items: center;
@@ -1006,4 +1006,28 @@ body::before {
   max-height: 3000px;
   opacity: 1;
   pointer-events: auto;
+}
+
+/* Continue button shown after winning the maze */
+.continue-wrap {
+  text-align: center;
+  margin: 2rem 0 1rem;
+}
+.continue-btn {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.2rem;
+  background: var(--paper);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.02em;
+}
+.continue-btn:hover {
+  background: var(--accent);
+  color: var(--paper);
+  letter-spacing: 0.05em;
 }

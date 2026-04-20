@@ -71,9 +71,15 @@
         slot.dataset.slotIndex = i;
         if (i === LOCK_INDEX) {
           slot.classList.add("filled", "locked");
-          slot.innerHTML = `<span class="scramble-slot-text">${TARGET[i]}</span>`;
-        } else {
-          slot.innerHTML = `<span class="scramble-slot-text"></span>`;
+          // Render the locked "P" as a proper tile so it matches placed-tile geometry
+          const tile = document.createElement("div");
+          tile.className = "letter-tile c1 placed locked pre-placed";
+          tile.textContent = TARGET[i];
+          tile.style.position = "absolute";
+          tile.style.left = "50%";
+          tile.style.top = "50%";
+          tile.style.transform = "translate(-50%, -50%) rotate(0deg)";
+          slot.appendChild(tile);
         }
         frag.appendChild(slot);
       }

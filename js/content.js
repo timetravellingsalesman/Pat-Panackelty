@@ -409,6 +409,10 @@ const CHAPTERS = [
         <p>Somehow you feel safe to open your eyes...</p>
 
         <div class="chapter-end">· · ·</div>
+
+        <div class="continue-wrap">
+          <button class="continue-btn" id="queen-continue-btn">open your eyes →</button>
+        </div>
       </div>
     `
   },
