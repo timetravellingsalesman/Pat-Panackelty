@@ -79,6 +79,12 @@ const VOCAB = {
     def: "The fancily-dressed people who hang about at a king or queen's palace. They are not royal themselves, but they spend their days near the throne — chatting, advising, gossiping, bowing, and generally trying to stay in the monarch's good books.",
     source: "https://en.wiktionary.org/wiki/courtier"
   },
+  couture: {
+    word: "couture",
+    pron: "koo-TOOR",
+    def: "The world of fancy, one-of-a-kind clothes that are cut and stitched by hand instead of being churned out in a factory. Couture dresses are usually made to fit one particular person exactly, which is why they take ages to sew and cost a small fortune. The word comes from French and means, simply, 'sewing' — though nobody who wears couture would call it that.",
+    source: "https://en.wiktionary.org/wiki/couture"
+  },
   pat: {
     word: "Pat",
     def: `<p style="text-align: center; margin: 0.5rem 0 1rem;"><img src="assets/pat.png" alt="Pat" style="max-width: 100%; max-height: 18rem; border-radius: 0.5rem;"></p><p style="text-align: center; font-style: italic;">That's you!</p>`

@@ -81,7 +81,7 @@ const CHAPTERS = [
       <p class="dialogue">"Good thing you're OK."</p>
       <p>The salesman straightens out with a slight expression of worry on his face, but very quickly smiles.</p>
       <p class="dialogue">"I was in the wrong time period."</p>
-      <p>A portal opens up, horizontally this time, and a blue car pops out. The salesman opens the trunk, throws the machine in it, and says: "I always wanted to start a fashion couture business." Shuts the trunk, jumps in. "Later kiddo!" he waves as he drives off.</p>
+      <p>A portal opens up, horizontally this time, and a blue car pops out. The salesman opens the trunk, throws the machine in it, and says: "I always wanted to start a fashion <span class="vocab" data-vocab="couture">couture</span> business." Shuts the trunk, jumps in. "Later kiddo!" he waves as he drives off.</p>
       <p>You look at the car and the large trail of dust behind it as it drives away toward the horizon.</p>
       <p>Before you can decide whether you're disappointed or inspired, a portal opens up above you.</p>
       <p>This one is a little different, you can see through it a beautiful blue sea, some tiny seagulls drifting in the sky. Their movement gave the sea a new dimension, a sliding <span class="vocab" data-vocab="parallax">parallax</span> that made the height and depth more apparent. You jump up without hesitation, and as soon as you cross the portal your weight sheds.</p>
