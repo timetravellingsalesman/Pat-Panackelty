@@ -675,7 +675,7 @@ body::before {
   width: auto;
   height: 33%;
   transform: translate(-50%, -50%);
-  transition: top 0.18s ease-out, left 0.18s ease-out;
+  transition: top 0.08s ease-out, left 0.08s ease-out;
   pointer-events: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;

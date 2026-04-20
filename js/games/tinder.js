@@ -74,7 +74,7 @@
         collected: { stick: 0, cattail: 0 },
         remaining: ITEMS.slice(),
         complete: false,
-        facing: "right",
+        facing: "up",  // top-down sprite defaults to facing up
       };
 
       this.itemEls = {};
@@ -124,16 +124,18 @@
       const yPct = ((this.state.pat.r + 0.5) / ROWS) * 100;
       this.pat.style.left = xPct + "%";
       this.pat.style.top = yPct + "%";
-      // Horizontal flip based on facing. Default sprite faces left; flip on right.
-      const scale = this.state.facing === "right" ? "-1" : "1";
-      this.pat.style.transform = `translate(-50%, -50%) scaleX(${scale})`;
+      // Rotate whole body based on facing direction (top-down view).
+      const rot = { up: 0, right: 90, down: 180, left: 270 }[this.state.facing] || 0;
+      this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
     },
 
     move(dc, dr) {
       if (this.state.complete) return;
-      // Update facing horizontally only
-      if (dc === 1) this.state.facing = "right";
+      // Update facing in all 4 directions (top-down rotation)
+      if (dr === -1) this.state.facing = "up";
+      else if (dr === 1) this.state.facing = "down";
       else if (dc === -1) this.state.facing = "left";
+      else if (dc === 1) this.state.facing = "right";
 
       const nc = this.state.pat.c + dc;
       const nr = this.state.pat.r + dr;
