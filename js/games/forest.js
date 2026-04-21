@@ -129,7 +129,14 @@
       this.pat.style.width = (this.cellW * 0.85) + "px";
       this.pat.style.height = (this.cellH * 0.85) + "px";
       const rot = { up: 0, right: 90, down: 180, left: 270 }[this.state.facing] || 0;
-      this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+      // Once the entering-the-van animation has played, keep Pat shrunk + invisible
+      // so that a resize doesn't pop him back to full size at the door.
+      if (this.state.entering) {
+        this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(0.05)`;
+        this.pat.style.opacity = "0";
+      } else {
+        this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+      }
     },
 
     renderFog() {
@@ -271,15 +278,65 @@
 
     onComplete() {
       this.state.complete = true;
-      // Phase 1: briefly reveal the full board — as if stepping into the van
-      // lets you finally see the clearing whole
-      this.fog.style.transition = "opacity 1.8s ease-out";
-      this.fog.style.opacity = "0";
-      // Phase 2: show the completion text
+      this.state.entering = true;
+
+      // Phase 1: Pat shrinks + fades in place at the van door, like stepping inside.
+      // Override the snappy movement transition with a slower one for this beat.
+      // Keep the rotation (currently facing "right" since arrival came from the left)
+      // and stack a scale + opacity on top.
+      const rot = { up: 0, right: 90, down: 180, left: 270 }[this.state.facing] || 0;
+      this.pat.style.transition = "transform 1.4s ease-in, opacity 1.4s ease-in";
+      // Force a reflow so the new transition applies before we change transform/opacity
+      // (otherwise the browser may batch and skip the animation).
+      void this.pat.offsetWidth;
+      this.pat.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(0.05)`;
+      this.pat.style.opacity = "0";
+
+      // Phase 2: fog fades — the clearing reveals itself once Pat is safely in
+      setTimeout(() => {
+        this.fog.style.transition = "opacity 1.6s ease-out";
+        this.fog.style.opacity = "0";
+      }, 900);
+
+      // Phase 3: completion text + continue button
       setTimeout(() => {
         this.completeMsg.textContent = "The bus. And the smell of something smoky.";
         this.completeMsg.classList.add("visible");
-      }, 1200);
+      }, 1800);
+
+      setTimeout(() => {
+        this.showContinueButton();
+      }, 2600);
+    },
+
+    showContinueButton() {
+      // Don't double-add if for some reason this fires twice
+      if (document.getElementById("forest-continue-btn")) return;
+      const wrap = document.createElement("div");
+      wrap.className = "continue-wrap forest-continue-wrap";
+      const btn = document.createElement("button");
+      btn.className = "continue-btn";
+      btn.id = "forest-continue-btn";
+      btn.textContent = "continue reading →";
+      btn.style.opacity = "0";
+      btn.style.transition = "opacity 0.8s ease-in";
+      wrap.appendChild(btn);
+      // Append after the completion message, inside the same game container
+      this.completeMsg.parentElement.appendChild(wrap);
+      requestAnimationFrame(() => { btn.style.opacity = "1"; });
+
+      btn.addEventListener("click", () => {
+        // Find the next paragraph after the forest game container and scroll to it
+        const gameContainer = this.completeMsg.closest(".game-container");
+        let nextEl = gameContainer ? gameContainer.nextElementSibling : null;
+        // Skip non-content nodes (defensive)
+        while (nextEl && !(nextEl.tagName === "P" || nextEl.tagName === "DIV")) {
+          nextEl = nextEl.nextElementSibling;
+        }
+        if (nextEl) {
+          nextEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
     },
   };
 })();

@@ -1062,3 +1062,50 @@ body::before {
   transition: none;
   max-height: none;
 }
+
+/* ============================================================
+   FLIGHT SCENE (salesman chapter — parallax interlude)
+   ============================================================ */
+.flight-scene {
+  margin: 2.5rem 0;
+  text-align: center;
+}
+.flight-wrap {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 34rem;
+  aspect-ratio: 16 / 9;
+  border: 1.5px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: 0 2px 12px var(--paper-shadow);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+.flight-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+.flight-pat {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+  pointer-events: none;
+  /* width set by JS */
+}
+.flight-caption {
+  text-align: center;
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--ink-faded);
+  font-size: 0.9rem;
+  margin: 0.8rem 0 0;
+  letter-spacing: 0.12em;
+}

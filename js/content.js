@@ -86,6 +86,8 @@ const CHAPTERS = [
       <p>Before you can decide whether you're disappointed or inspired, a portal opens up above you.</p>
       <p>This one is a little different, you can see through it a beautiful blue sea, some tiny seagulls drifting in the sky. Their movement gave the sea a new dimension, a sliding <span class="vocab" data-vocab="parallax">parallax</span> that made the height and depth more apparent. You jump up without hesitation, and as soon as you cross the portal your weight sheds.</p>
 
+      <!--GAME:flight-->
+
       <div class="chapter-end">· · ·</div>
     `
   },

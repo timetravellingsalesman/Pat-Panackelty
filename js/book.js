@@ -90,7 +90,8 @@ const BOOK = {
         .replace('<!--GAME:scramble-->', this.gameSlot('scramble', 'Who are you? Unscramble the letters to remember...'))
         .replace('<!--GAME:tinder-->', this.gameSlot('tinder', 'Gather tinder to wake the fire.'))
         .replace('<!--GAME:forest-->', this.gameSlot('forest', 'Find your way through the forest to the bus.'))
-        .replace('<!--GAME:maze-->', this.gameSlot('maze', 'Hop through the hedge maze. Do not let the chef catch you.'));
+        .replace('<!--GAME:maze-->', this.gameSlot('maze', 'Hop through the hedge maze. Do not let the chef catch you.'))
+        .replace('<!--GAME:flight-->', this.flightSlot());
 
       book.appendChild(el);
     });
@@ -121,6 +122,12 @@ const BOOK = {
     `;
   },
 
+  flightSlot() {
+    // The flight scene is cinematic, not a puzzle, so it has no instruction
+    // and no game-container chrome. Just a bare mount point.
+    return `<div class="game-mount" data-game="flight" role="img" aria-label="Pat flying over a blue sea with seagulls and drifting clouds"></div>`;
+  },
+
   mountGames() {
     document.querySelectorAll('.game-mount').forEach(el => {
       const type = el.dataset.game;
@@ -132,6 +139,8 @@ const BOOK = {
         ForestGame.mount(el);
       } else if (type === 'maze' && window.MazeGame) {
         MazeGame.mount(el);
+      } else if (type === 'flight' && window.FlightGame) {
+        FlightGame.mount(el);
       } else {
         el.innerHTML = `<div class="game-placeholder">[ ${type} game — coming in a later build ]</div>`;
       }
