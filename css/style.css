@@ -1109,3 +1109,226 @@ body::before {
   margin: 0.8rem 0 0;
   letter-spacing: 0.12em;
 }
+
+/* ============================================================
+   CRÊPE CATCHING GAME (chef chapter)
+   ============================================================ */
+.crepe-game {
+  margin: 2rem 0;
+  text-align: center;
+  font-family: var(--serif);
+}
+.crepe-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 34rem;
+  margin: 0 auto 0.5rem;
+  padding: 0 0.3rem;
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.crepe-score-label { color: var(--ink-faded); margin-right: 0.3rem; }
+.crepe-score-num   { color: var(--accent); font-weight: normal; font-size: 1.1rem; }
+.crepe-score-goal  { color: var(--ink-faded); margin-left: 0.2rem; }
+.crepe-lives { display: inline-flex; gap: 4px; align-items: center; }
+.crepe-life {
+  width: 14px;
+  height: 7px;
+  background: #e6be7e;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  display: inline-block;
+  transition: opacity 0.3s, background 0.3s;
+}
+.crepe-life.used {
+  background: var(--paper-deep);
+  opacity: 0.3;
+}
+
+.crepe-field {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 34rem;
+  height: 320px;
+  background: linear-gradient(to bottom, #f2e6c8 0%, #e8d8b0 65%, #d9c18a 100%);
+  border: 1.5px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: 0 2px 12px var(--paper-shadow);
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+}
+.crepe-chef {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 10px;
+  background: #f5eedc;
+  border: 1px solid var(--ink);
+  border-radius: 6px 6px 2px 2px;
+  /* A little chef's hat silhouette indicating where pancakes come from */
+}
+.crepe-chef::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 3px;
+  width: 18px; height: 3px;
+  background: var(--ink);
+}
+
+.crepe-lane-hints {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+.crepe-lane-hint {
+  position: absolute;
+  top: 0; bottom: 60px;
+  background: transparent;
+  border-left: 1px dashed rgba(122, 107, 85, 0.15);
+  transition: background 0.2s;
+}
+.crepe-lane-hint:first-child { border-left: none; }
+.crepe-lane-hint.active {
+  background: rgba(200, 155, 60, 0.08);
+}
+.crepe-lane-hint.incoming {
+  background: rgba(163, 59, 42, 0.12);
+  transition: background 0.1s;
+}
+
+.crepe-stoves {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 36px;
+  pointer-events: none;
+}
+.crepe-stove {
+  position: absolute;
+  bottom: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, #8b7d6b 0%, #5a4c3c 100%);
+  border-top: 2px solid var(--ink);
+  border-right: 1px solid rgba(0,0,0,0.2);
+}
+.crepe-stove:last-child { border-right: none; }
+
+.crepe-pat {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 3;
+  /* width/height set by JS */
+}
+
+.crepe-pancake {
+  position: absolute;
+  width: 28px;
+  height: 14px;
+  background-image: url('../assets/pancake.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  z-index: 2;
+  pointer-events: none;
+  transition: none;
+}
+.crepe-pancake.caught {
+  transform: scale(0.5);
+  opacity: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.crepe-pancake.splatted {
+  transform: scaleY(0.35) scaleX(1.5);
+  opacity: 0.8;
+  transition: transform 0.25s, opacity 0.7s;
+  filter: saturate(0.7);
+}
+
+.crepe-catch-puff {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, rgba(245,240,220,0.9) 0%, rgba(245,240,220,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  animation: crepe-puff 0.5s ease-out forwards;
+}
+@keyframes crepe-puff {
+  0%   { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(2.2) translateY(-10px); opacity: 0; }
+}
+
+.crepe-message {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--accent-deep);
+  text-shadow: 0 1px 2px rgba(245, 238, 220, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 5;
+  text-align: center;
+  width: 80%;
+}
+.crepe-message:not(:empty) { opacity: 1; }
+.crepe-message.persist { color: var(--forest); font-size: 1.4rem; }
+
+.crepe-hint {
+  text-align: center;
+  font-family: var(--display);
+  font-style: italic;
+  color: var(--ink-faded);
+  font-size: 0.85rem;
+  margin: 0.8rem 0 0;
+}
+.crepe-restart {
+  display: inline-block;
+  margin: 0.8rem auto 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1rem;
+  background: var(--paper);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.crepe-restart:hover {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* Chef gating: hide post-win text until enough crêpes are caught */
+.locked-until-crepe {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1.2s ease-out, opacity 1s ease-in;
+  pointer-events: none;
+}
+.locked-until-crepe.revealed {
+  max-height: 4000px;
+  opacity: 1;
+  pointer-events: auto;
+}
+.locked-until-crepe.revealed.instant {
+  transition: none;
+  max-height: none;
+}

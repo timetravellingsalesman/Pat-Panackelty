@@ -339,25 +339,29 @@ const CHAPTERS = [
 
       <p>You did, and... Your turn!</p>
 
-      <p>The pancake flips, with little force applied. <em>Pat.</em> It lands half-folded on the pan.</p>
+      <!--GAME:crepe-->
 
-      <p class="dialogue">"Don't worry. Next time try to cook it a few seconds longer."</p>
+      <div class="locked-until-crepe" id="chef-after-crepe" aria-hidden="true">
+        <p class="no-indent">The pancake flips, with little force applied. <em>Pat.</em> It lands half-folded on the pan.</p>
 
-      <p>You throw zis... ekhm, this one away, not at all discouraged. Quite the opposite! You close your eyes, and swing the pan full blast. <em>Splat!</em> You hear. You look up to see the crêpe stuck to the ceiling. Not for long, as it falls right onto the cook's face.</p>
+        <p class="dialogue">"Don't worry. Next time try to cook it a few seconds longer."</p>
 
-      <p class="dialogue">"Tout ce qui monte doit redescendre..." He mumbles in French. "What goes up must come down."</p>
+        <p>You throw zis... ekhm, this one away, not at all discouraged. Quite the opposite! You close your eyes, and swing the pan full blast. <em>Splat!</em> You hear. You look up to see the crêpe stuck to the ceiling. Not for long, as it falls right onto the cook's face.</p>
 
-      <p>You tilt your head forward with an intense squint of concentration, and try again. <em>Zing!</em> It lands perfectly. You curtsy with your pan still in your hand.</p>
+        <p class="dialogue">"Tout ce qui monte doit redescendre..." He mumbles in French. "What goes up must come down."</p>
 
-      <p class="dialogue">"Bravo!" he claps with a smug expression. "Lay ze pan back on ze stove and cook for about ahf ze time you cooked on ze ozer side until you can see some steam again, flip ze pan over a plate to remove ze ready crêpe."</p>
+        <p>You tilt your head forward with an intense squint of concentration, and try again. <em>Zing!</em> It lands perfectly. You curtsy with your pan still in your hand.</p>
 
-      <p>You finish the rest of the crêpes with more ease.</p>
+        <p class="dialogue">"Bravo!" he claps with a smug expression. "Lay ze pan back on ze stove and cook for about ahf ze time you cooked on ze ozer side until you can see some steam again, flip ze pan over a plate to remove ze ready crêpe."</p>
 
-      <p class="dialogue">"Go through zis door to discuss your compensation." He points at a door in the other side of the kitchen.</p>
+        <p>You finish the rest of the crêpes with more ease.</p>
 
-      <p>You go through, and follow a path that leads to the palace through an olive grove.</p>
+        <p class="dialogue">"Go through zis door to discuss your compensation." He points at a door in the other side of the kitchen.</p>
 
-      <div class="chapter-end">· · ·</div>
+        <p>You go through, and follow a path that leads to the palace through an olive grove.</p>
+
+        <div class="chapter-end">· · ·</div>
+      </div>
     `
   },
 

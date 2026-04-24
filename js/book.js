@@ -6,11 +6,13 @@ const BOOK = {
   gameCompletion: {}, // track which games have been completed
   mazeWon: false,
   tinderWon: false,
+  crepeWon: false,
 
   loadProgress() {
     try {
       this.mazeWon = localStorage.getItem('patbook.mazeWon') === '1';
       this.tinderWon = localStorage.getItem('patbook.tinderWon') === '1';
+      this.crepeWon = localStorage.getItem('patbook.crepeWon') === '1';
     } catch (e) {
       // ignore — private mode, disabled storage, etc.
     }
@@ -20,6 +22,7 @@ const BOOK = {
     try {
       if (this.mazeWon) localStorage.setItem('patbook.mazeWon', '1');
       if (this.tinderWon) localStorage.setItem('patbook.tinderWon', '1');
+      if (this.crepeWon) localStorage.setItem('patbook.crepeWon', '1');
     } catch (e) {
       // ignore
     }
@@ -62,6 +65,13 @@ const BOOK = {
         contBtn.addEventListener('click', () => this.next());
       }
     }
+    if (this.crepeWon) {
+      const region = document.getElementById('chef-after-crepe');
+      if (region) {
+        region.setAttribute('aria-hidden', 'false');
+        region.classList.add('revealed', 'instant');
+      }
+    }
   },
 
   renderAll() {
@@ -91,6 +101,7 @@ const BOOK = {
         .replace('<!--GAME:tinder-->', this.gameSlot('tinder', 'Gather tinder to wake the fire.'))
         .replace('<!--GAME:forest-->', this.gameSlot('forest', 'Find your way through the forest to the bus.'))
         .replace('<!--GAME:maze-->', this.gameSlot('maze', 'Hop through the hedge maze. Do not let the chef catch you.'))
+        .replace('<!--GAME:crepe-->', this.gameSlot('crepe', 'Catch the crêpes in your pan. Arrow keys to move.'))
         .replace('<!--GAME:flight-->', this.flightSlot());
 
       book.appendChild(el);
@@ -113,6 +124,7 @@ const BOOK = {
       tinder: "Tinder collection game",
       forest: "Forest walk game",
       maze: "Hedge maze chase game",
+      crepe: "Crêpe catching game",
     };
     return `
       <div class="game-container" id="game-${type}" role="region" aria-label="${labels[type] || type}">
@@ -141,6 +153,8 @@ const BOOK = {
         MazeGame.mount(el);
       } else if (type === 'flight' && window.FlightGame) {
         FlightGame.mount(el);
+      } else if (type === 'crepe' && window.CrepeGame) {
+        CrepeGame.mount(el);
       } else {
         el.innerHTML = `<div class="game-placeholder">[ ${type} game — coming in a later build ]</div>`;
       }
@@ -250,6 +264,11 @@ const BOOK = {
       this.flashGateMessage('finish the firewood first');
       return;
     }
+    // Gating: block forward from chef until crêpes are plated
+    if (current && current.id === 'chef' && !this.crepeWon && index > this.currentIndex) {
+      this.flashGateMessage('finish plating the crêpes first');
+      return;
+    }
     this.currentIndex = index;
     document.querySelectorAll('.chapter').forEach(el => el.classList.remove('active'));
     const target = document.querySelector(`[data-index="${index}"]`);
@@ -290,6 +309,8 @@ const BOOK = {
     if (ch && ch.id === 'queen' && !this.mazeWon) next.disabled = true;
     // Jeannie chapter: disable next until tinder is done
     if (ch && ch.id === 'jeannie' && !this.tinderWon) next.disabled = true;
+    // Chef chapter: disable next until crêpes are plated
+    if (ch && ch.id === 'chef' && !this.crepeWon) next.disabled = true;
     if (ch.isCover) {
       ind.textContent = '— cover —';
     } else {
@@ -327,6 +348,13 @@ const BOOK = {
       }
     });
 
+    // Crêpe game win - unlock the chef chapter's post-game text
+    window.addEventListener('crepeWon', () => {
+      this.crepeWon = true;
+      this.saveProgress();
+      this.updateNav();
+    });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.closePanel();
       // Arrow keys for navigation, unless a game is focused
@@ -339,6 +367,7 @@ const BOOK = {
       const currentCh = this.chapters[this.currentIndex];
       if (currentCh && currentCh.id === 'queen' && !this.mazeWon) return;
       if (currentCh && currentCh.id === 'jeannie' && !this.tinderWon) return;
+      if (currentCh && currentCh.id === 'chef' && !this.crepeWon) return;
       if (e.key === 'ArrowRight') this.next();
       if (e.key === 'ArrowLeft') this.prev();
     });
